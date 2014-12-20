@@ -35,7 +35,8 @@ func main() {
 
 	k := Bank{}
 
-	for j := 0; j < len(temp); j++ {
+	for j, _ := range temp {
+		//for j := 0; j < len(temp); j++ {
 		// fmt.Println(j)
 		k.Name = "KBZ"
 		k.Base = "MMK"
@@ -45,12 +46,24 @@ func main() {
 			currencies = append(currencies, str.TrimSpace(temp[j]))
 		}
 	}
+
 	buy = append(buy, temp[1], temp[4], temp[7])
 	sell = append(sell, temp[2], temp[5], temp[8])
 
-	fmt.Println(currencies)
-	fmt.Println(buy)
-	fmt.Println(sell)
+	// fmt.Println(currencies)
+	// fmt.Println(buy)
+	// fmt.Println(sell)
+
+	for x, _ := range currencies {
+		r := Rate{
+			map[string]BuySell{
+				currencies[x]: BuySell{buy[x], sell[x]},
+			},
+		}
+		k.Rates = append(k.Rates, r)
+	}
+
+	fmt.Println(k)
 }
 
 func PanicIf(err error) {
