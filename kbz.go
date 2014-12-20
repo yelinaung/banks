@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"os"
 )
 
 var (
@@ -10,14 +11,22 @@ var (
 )
 
 func main() {
-	doc, err := goquery.NewDocument(kbz)
+
+	f, err := os.Open("kbz.html")
+	PanicIf(err)
+
+	defer f.Close()
+
+	doc, err := goquery.NewDocumentFromReader(f)
 	if err != nil {
 		PanicIf(err)
 	}
 
-	doc.Find(".answer").Each(func(i int, s *goquery.Selection) {
-		txt := s.Find("p").Text()
+	doc.Find(".answer tbody tr").Each(func(i int, s *goquery.Selection) {
+		txt := s.Text()
+		fmt.Println("------------------")
 		fmt.Println(txt)
+		fmt.Println("------------------")
 	})
 }
 
