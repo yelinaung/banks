@@ -8,8 +8,11 @@ import (
 )
 
 var (
-	kbz  = "http://www.kbzbank.com"
-	temp = []string{}
+	kbz        = "http://www.kbzbank.com"
+	temp       = []string{}
+	currencies = []string{}
+	buy        = []string{}
+	sell       = []string{}
 )
 
 func main() {
@@ -30,12 +33,24 @@ func main() {
 		})
 	})
 
+	k := Bank{}
+
 	for j := 0; j < len(temp); j++ {
 		// fmt.Println(j)
+		k.Name = "KBZ"
+		k.Base = "MMK"
 		if j%3 == 0 {
-			fmt.Println(str.TrimSpace(temp[j]))
+			// fmt.Println(str.TrimSpace(temp[j]))
+			// k.Rates
+			currencies = append(currencies, str.TrimSpace(temp[j]))
 		}
 	}
+	buy = append(buy, temp[1], temp[4], temp[7])
+	sell = append(sell, temp[2], temp[5], temp[8])
+
+	fmt.Println(currencies)
+	fmt.Println(buy)
+	fmt.Println(sell)
 }
 
 func PanicIf(err error) {
@@ -45,8 +60,17 @@ func PanicIf(err error) {
 }
 
 type Bank struct {
-	Name  string
-	Time  string
+	Name string
+	//Time string
 	Base  string
-	Rates []string
+	Rates []Rate
+}
+
+type Rate struct {
+	BS map[string]BuySell
+}
+
+type BuySell struct {
+	Buy  string
+	Sell string
 }
