@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"os"
+	str "strings"
 )
 
 var (
-	kbz = "http://www.kbzbank.com"
+	kbz  = "http://www.kbzbank.com"
+	temp = []string{}
 )
 
 func main() {
@@ -23,15 +25,28 @@ func main() {
 	}
 
 	doc.Find(".answer tbody tr").Each(func(i int, s *goquery.Selection) {
-		txt := s.Text()
-		fmt.Println("------------------")
-		fmt.Println(txt)
-		fmt.Println("------------------")
+		s.Find("td").Each(func(u int, t *goquery.Selection) {
+			temp = append(temp, t.Text())
+		})
 	})
+
+	for j := 0; j < len(temp); j++ {
+		// fmt.Println(j)
+		if j%3 == 0 {
+			fmt.Println(str.TrimSpace(temp[j]))
+		}
+	}
 }
 
 func PanicIf(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+type Bank struct {
+	Name  string
+	Time  string
+	Base  string
+	Rates []string
 }
