@@ -36,23 +36,15 @@ func main() {
 	k := Bank{}
 
 	for j, _ := range temp {
-		//for j := 0; j < len(temp); j++ {
-		// fmt.Println(j)
 		k.Name = "KBZ"
 		k.Base = "MMK"
 		if j%3 == 0 {
-			// fmt.Println(str.TrimSpace(temp[j]))
-			// k.Rates
 			currencies = append(currencies, str.TrimSpace(temp[j]))
 		}
 	}
 
 	buy = append(buy, temp[1], temp[4], temp[7])
 	sell = append(sell, temp[2], temp[5], temp[8])
-
-	// fmt.Println(currencies)
-	// fmt.Println(buy)
-	// fmt.Println(sell)
 
 	for x, _ := range currencies {
 		r := Rate{
