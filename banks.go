@@ -48,34 +48,33 @@ func ScrapCB(url string) ([]string, string) {
 
 func Process(tmp []string, bName string) Bank {
 
-	k := Bank{}
+	bank := Bank{}
 
 	if bName == "kbz" {
-		k.Name = "KBZ"
-		k.Base = "MMK"
+		bank.Name = "KBZ"
 	} else if bName == "cb" {
-		k.Name = "CB"
-		k.Base = "MMK"
+		bank.Name = "CB"
 	}
 
-	k.Time = time.Now().String()
+	bank.Base = "MMK"
+	bank.Time = time.Now().String()
 
 	currencies := []string{tmp[0], tmp[3], tmp[6]}
 	buy := []string{tmp[1], tmp[4], tmp[7]}
 	sell := []string{tmp[2], tmp[5], tmp[8]}
 
 	for x, _ := range currencies {
-		k.Rates = append(k.Rates, map[string]BuySell{
+		bank.Rates = append(bank.Rates, map[string]BuySell{
 			currencies[x]: BuySell{buy[x], sell[x]}})
 	}
 
-	return k
+	return bank
 }
 
 func main() {
 
-	rawKBZ, x := ScrapKBZ(kbz)
-	rawCB, y := ScrapCB(cb)
+	rawKBZ, kbz := ScrapKBZ(kbz)
+	rawCB, cb := ScrapCB(cb)
 
 	router := gin.Default()
 
@@ -83,10 +82,10 @@ func main() {
 		bankName := c.Params.ByName("bank")
 
 		if bankName == "kbz" {
-			bank := Process(rawKBZ, x)
+			bank := Process(rawKBZ, kbz)
 			c.JSON(200, bank)
 		} else if bankName == "cb" {
-			bank := Process(rawCB, y)
+			bank := Process(rawCB, cb)
 			c.JSON(200, bank)
 		}
 	})
