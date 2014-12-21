@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
+	"os"
 	str "strings"
 	"time"
 )
@@ -90,7 +91,7 @@ func main() {
 		}
 	})
 
-	router.Run(":3001")
+	router.Run(":" + os.Getenv("PORT"))
 }
 
 func PanicIf(err error) {
