@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func main() {
+func main2() {
 	f, err := os.Open("cb.html")
 	defer f.Close()
 	PanicIf(err)
@@ -30,30 +30,9 @@ func main() {
 
 	k.Name = "CB"
 	k.Base = "MMK"
+
+	// Probably use the time from cb bank ?
 	k.Time = time.Now().String()
 
-	for x, _ := range currencies {
-		k.Rates = append(k.Rates, map[string]BuySell{
-			currencies[x]: BuySell{buy[x], sell[x]}})
-	}
-
 	fmt.Println(k)
-}
-
-func PanicIf(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-type Bank struct {
-	Name  string               `json:"name"`
-	Base  string               `json:"base"`
-	Time  string               `json:"time"`
-	Rates []map[string]BuySell `json:"rates"`
-}
-
-type BuySell struct {
-	Buy  string `json:"buy"`
-	Sell string `json:"sell"`
 }
