@@ -4,6 +4,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
 	str "strings"
+	"time"
 )
 
 var (
@@ -43,6 +44,7 @@ func Process(temp []string) Bank {
 	for j, _ := range temp {
 		k.Name = "KBZ"
 		k.Base = "MMK"
+		k.Time = time.Now().String()
 		if j%3 == 0 {
 			currencies = append(currencies, str.TrimSpace(temp[j]))
 		}
@@ -68,7 +70,7 @@ func main() {
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, bank)
 	})
-	router.Run(":8080")
+	router.Run(":3001")
 }
 
 func PanicIf(err error) {
@@ -80,12 +82,8 @@ func PanicIf(err error) {
 type Bank struct {
 	Name  string               `json:"name"`
 	Base  string               `json:"base"`
+	Time  string               `json:"time"`
 	Rates []map[string]BuySell `json:"rates"`
-	//Time string
-}
-
-type Rate struct {
-	BS map[string]BuySell
 }
 
 type BuySell struct {
