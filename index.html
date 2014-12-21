@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Banks by yelinaung</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Banks</h1>
+        <p>scrap-and-show API</p>
+
+        <p class="view"><a href="https://github.com/yelinaung/banks">View the Project on GitHub <small>yelinaung/banks</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/yelinaung/banks/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/yelinaung/banks/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/yelinaung/banks">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="banks" class="anchor" href="#banks" aria-hidden="true"><span class="octicon octicon-link"></span></a>Banks</h1>
+
+<p>Just scrap-and-show API for currency exchange rates of Banks in Myanmar.</p>
+
+<p>Supported banks</p>
+
+<ul>
+<li><a href="kbzbank.com">KBZ</a></li>
+<li><a href="www.cbbank.com.mm">CB</a></li>
+</ul>
+
+<p>The sample app is up and running at <a href="https://young-plains-2161.herokuapp.com/kbz">https://young-plains-2161.herokuapp.com/kbz</a></p>
+
+<h2>
+<a id="how-to-run" class="anchor" href="#how-to-run" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to run</h2>
+
+<div class="highlight highlight-bash"><pre>$ go get github.com/yelinaung/banks
+$ <span class="pl-s3">cd</span> <span class="pl-vo">$GOPATH</span>/src/github.com/yelinaung/banks
+$ go get
+$ <span class="pl-s">export</span> PORT=<span class="pl-s1"><span class="pl-pds">"</span>8080<span class="pl-pds">"</span></span> <span class="pl-k">&amp;&amp;</span> go run banks.go</pre></div>
+
+<p>You have to put the bank name as parameters in path</p>
+
+<p>e.g For KBZ, put the bank name after the base url. Same for CB.</p>
+
+<p><code>localhost:3001/kbz</code></p>
+
+<h2>
+<a id="sample-response" class="anchor" href="#sample-response" aria-hidden="true"><span class="octicon octicon-link"></span></a>Sample response</h2>
+
+<div class="highlight highlight-json"><pre>{
+  <span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>:<span class="pl-s1"><span class="pl-pds">"</span>KBZ<span class="pl-pds">"</span></span>,
+  <span class="pl-s1"><span class="pl-pds">"</span>base<span class="pl-pds">"</span></span>:<span class="pl-s1"><span class="pl-pds">"</span>MMK<span class="pl-pds">"</span></span>,
+  <span class="pl-s1"><span class="pl-pds">"</span>time<span class="pl-pds">"</span></span>:<span class="pl-s1"><span class="pl-pds">"</span>2014-12-21 14:51:06.97045683 +0630 MMT<span class="pl-pds">"</span></span>,
+  <span class="pl-s1"><span class="pl-pds">"</span>rates<span class="pl-pds">"</span></span>:[
+    {
+      <span class="pl-s1"><span class="pl-pds">"</span>USD<span class="pl-pds">"</span></span>:{
+        <span class="pl-s1"><span class="pl-pds">"</span>buy<span class="pl-pds">"</span></span>:<span class="pl-s1"><span class="pl-pds">"</span>1025<span class="pl-pds">"</span></span>,
+        <span class="pl-s1"><span class="pl-pds">"</span>sell<span class="pl-pds">"</span></span>:<span class="pl-s1"><span class="pl-pds">"</span>1034<span class="pl-pds">"</span></span>
+      }
+    },
+    {
+      <span class="pl-s1"><span class="pl-pds">"</span>EUR<span class="pl-pds">"</span></span>:{
+        <span class="pl-s1"><span class="pl-pds">"</span>buy<span class="pl-pds">"</span></span>:<span class="pl-s1"><span class="pl-pds">"</span>1249<span class="pl-pds">"</span></span>,
+        <span class="pl-s1"><span class="pl-pds">"</span>sell<span class="pl-pds">"</span></span>:<span class="pl-s1"><span class="pl-pds">"</span>1268<span class="pl-pds">"</span></span>
+      }
+    },
+    {
+      <span class="pl-s1"><span class="pl-pds">"</span>SGD<span class="pl-pds">"</span></span>:{
+        <span class="pl-s1"><span class="pl-pds">"</span>buy<span class="pl-pds">"</span></span>:<span class="pl-s1"><span class="pl-pds">"</span>774<span class="pl-pds">"</span></span>,
+        <span class="pl-s1"><span class="pl-pds">"</span>sell<span class="pl-pds">"</span></span>:<span class="pl-s1"><span class="pl-pds">"</span>786<span class="pl-pds">"</span></span>
+      }
+    }
+  ]
+}</pre></div>
+
+<h2>
+<a id="todo" class="anchor" href="#todo" aria-hidden="true"><span class="octicon octicon-link"></span></a>TODO</h2>
+
+<ul>
+<li><del>Deploy to Heroku</del></li>
+<li>To add AGD </li>
+<li>To scrap periodically ?</li>
+<li>To cache with the dates ?</li>
+</ul>
+
+<h2>
+<a id="contributing" class="anchor" href="#contributing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contributing</h2>
+
+<ol>
+<li>Fork it</li>
+<li>Create your feature branch (<code>git checkout -b my-new-feature</code>)</li>
+<li>Commit your changes (<code>git commit -am 'Added some feature'</code>)</li>
+<li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
+</ol>
+
+<h2>
+<a id="lincese" class="anchor" href="#lincese" aria-hidden="true"><span class="octicon octicon-link"></span></a>Lincese</h2>
+
+<p>MIT</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/yelinaung">yelinaung</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
