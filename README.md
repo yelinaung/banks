@@ -6,6 +6,8 @@ Supported banks
 - [KBZ](kbzbank.com)
 - [CB](www.cbbank.com.mm)
 
+The sample app is up and running at [https://young-plains-2161.herokuapp.com/kbz](https://young-plains-2161.herokuapp.com/kbz)
+
 
 ## How to run
 
@@ -54,7 +56,7 @@ e.g For KBZ, put the bank name after the base url. Same for CB.
 
 ## TODO
 
-- Deploy to Heroku
+- ~~Deploy to Heroku~~
 - To add AGD 
 - To scrap periodically ?
 - To cache with the dates ?
