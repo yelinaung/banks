@@ -46,10 +46,7 @@ func ScrapCB(url string) ([]string, string) {
 	return tmp, "cb"
 }
 
-func Process(temp []string, bName string) Bank {
-	currencies := []string{}
-	buy := []string{}
-	sell := []string{}
+func Process(tmp []string, bName string) Bank {
 
 	k := Bank{}
 
@@ -63,15 +60,9 @@ func Process(temp []string, bName string) Bank {
 
 	k.Time = time.Now().String()
 
-	// I don't know why I do this lol
-	for j, _ := range temp {
-		if j%3 == 0 {
-			currencies = append(currencies, str.TrimSpace(temp[j]))
-		}
-	}
-
-	buy = append(buy, temp[1], temp[4], temp[7])
-	sell = append(sell, temp[2], temp[5], temp[8])
+	currencies := []string{tmp[0], tmp[3], tmp[6]}
+	buy := []string{tmp[1], tmp[4], tmp[7]}
+	sell := []string{tmp[2], tmp[5], tmp[8]}
 
 	for x, _ := range currencies {
 		k.Rates = append(k.Rates, map[string]BuySell{
