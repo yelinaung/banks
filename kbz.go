@@ -59,8 +59,8 @@ func Process(temp []string) Bank {
 		// },
 		// }
 		// k.Rates = append(k.Rates, r)
-		k.Rates = map[string]BuySell{
-			currencies[x]: BuySell{buy[x], sell[x]}}
+		k.Rates = append(k.Rates, map[string]BuySell{
+			currencies[x]: BuySell{buy[x], sell[x]}})
 	}
 
 	// fmt.Println(k)
@@ -90,7 +90,7 @@ type Bank struct {
 	//Time string
 	Base string
 	// Rates []Rate
-	Rates map[string]BuySell
+	Rates []map[string]BuySell
 }
 
 type Rate struct {
