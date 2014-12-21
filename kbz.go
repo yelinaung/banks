@@ -3,19 +3,21 @@ package main
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/gin-gonic/gin"
+
 	"os"
 	str "strings"
 )
 
 var (
 	kbz        = "http://www.kbzbank.com"
-	temp       = []string{}
 	currencies = []string{}
 	buy        = []string{}
 	sell       = []string{}
 )
 
-func main() {
+func ScrapWork(url string) []string {
+	temp := []string{}
 
 	f, err := os.Open("kbz.html")
 	PanicIf(err)
@@ -33,6 +35,10 @@ func main() {
 		})
 	})
 
+	return temp
+}
+
+func Process(temp []string) Bank {
 	k := Bank{}
 
 	for j, _ := range temp {
@@ -56,6 +62,19 @@ func main() {
 	}
 
 	fmt.Println(k)
+	return k
+}
+
+func main() {
+
+	raw := ScrapWork("")
+	bank := Process(raw)
+
+	router := gin.Default()
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(200, bank)
+	})
+	router.Run(":8080")
 }
 
 func PanicIf(err error) {
