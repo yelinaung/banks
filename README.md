@@ -11,6 +11,8 @@ Supported banks
 
 ```bash
 $ go get github.com/yelinaung/banks
+$ cd $GOPATH/src/github.com/yelinaung/banks
+$ go get
 $ go run banks.go
 ```
 
