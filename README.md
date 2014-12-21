@@ -50,12 +50,19 @@ e.g For KBZ, put the bank name after the base url. Same for CB.
 }
 ```
 
-## TOOD 
+## TODO
 
 - Deploy to Heroku
 - To add AGD 
 - To scrap periodically ?
 - To cache with the dates ?
+
+## Contributing
+
+  1. Fork it
+  2. Create your feature branch (`git checkout -b my-new-feature`)
+  3. Commit your changes (`git commit -am 'Added some feature'`)
+  4. Push to the branch (`git push origin my-new-feature`)
 
 
 ## Lincese
