@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
 
@@ -53,15 +53,17 @@ func Process(temp []string) Bank {
 	sell = append(sell, temp[2], temp[5], temp[8])
 
 	for x, _ := range currencies {
-		r := Rate{
-			map[string]BuySell{
-				currencies[x]: BuySell{buy[x], sell[x]},
-			},
-		}
-		k.Rates = append(k.Rates, r)
+		// r := Rate{
+		// map[string]BuySell{
+		// currencies[x]: BuySell{buy[x], sell[x]},
+		// },
+		// }
+		// k.Rates = append(k.Rates, r)
+		k.Rates = map[string]BuySell{
+			currencies[x]: BuySell{buy[x], sell[x]}}
 	}
 
-	fmt.Println(k)
+	// fmt.Println(k)
 	return k
 }
 
@@ -86,8 +88,9 @@ func PanicIf(err error) {
 type Bank struct {
 	Name string
 	//Time string
-	Base  string
-	Rates []Rate
+	Base string
+	// Rates []Rate
+	Rates map[string]BuySell
 }
 
 type Rate struct {
