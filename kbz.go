@@ -1,30 +1,25 @@
 package main
 
 import (
-	// "fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
-
-	"os"
 	str "strings"
 )
 
 var (
-	kbz        = "http://www.kbzbank.com"
-	currencies = []string{}
-	buy        = []string{}
-	sell       = []string{}
+	kbz = "http://www.kbzbank.com"
 )
 
 func ScrapWork(url string) []string {
 	temp := []string{}
 
-	f, err := os.Open("kbz.html")
-	PanicIf(err)
+	// Using with file
+	// f, err := os.Open("kbz.html")
+	// PanicIf(err)
+	// defer f.Close()
+	// doc, err := goquery.NewDocumentFromReader(f)
 
-	defer f.Close()
-
-	doc, err := goquery.NewDocumentFromReader(f)
+	doc, err := goquery.NewDocument(kbz)
 	if err != nil {
 		PanicIf(err)
 	}
@@ -39,6 +34,10 @@ func ScrapWork(url string) []string {
 }
 
 func Process(temp []string) Bank {
+	currencies := []string{}
+	buy := []string{}
+	sell := []string{}
+
 	k := Bank{}
 
 	for j, _ := range temp {
@@ -53,17 +52,10 @@ func Process(temp []string) Bank {
 	sell = append(sell, temp[2], temp[5], temp[8])
 
 	for x, _ := range currencies {
-		// r := Rate{
-		// map[string]BuySell{
-		// currencies[x]: BuySell{buy[x], sell[x]},
-		// },
-		// }
-		// k.Rates = append(k.Rates, r)
 		k.Rates = append(k.Rates, map[string]BuySell{
 			currencies[x]: BuySell{buy[x], sell[x]}})
 	}
 
-	// fmt.Println(k)
 	return k
 }
 
