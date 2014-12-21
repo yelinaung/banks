@@ -19,7 +19,7 @@ func ScrapWork(url string) []string {
 	// defer f.Close()
 	// doc, err := goquery.NewDocumentFromReader(f)
 
-	doc, err := goquery.NewDocument(kbz)
+	doc, err := goquery.NewDocument(url)
 	if err != nil {
 		PanicIf(err)
 	}
@@ -61,7 +61,7 @@ func Process(temp []string) Bank {
 
 func main() {
 
-	raw := ScrapWork("")
+	raw := ScrapWork(kbz)
 	bank := Process(raw)
 
 	router := gin.Default()
