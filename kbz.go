@@ -86,11 +86,10 @@ func PanicIf(err error) {
 }
 
 type Bank struct {
-	Name string
+	Name  string               `json:"name"`
+	Base  string               `json:"base"`
+	Rates []map[string]BuySell `json:"rates"`
 	//Time string
-	Base string
-	// Rates []Rate
-	Rates []map[string]BuySell
 }
 
 type Rate struct {
@@ -98,6 +97,6 @@ type Rate struct {
 }
 
 type BuySell struct {
-	Buy  string
-	Sell string
+	Buy  string `json:"buy"`
+	Sell string `json:"sell"`
 }
