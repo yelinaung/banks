@@ -26,7 +26,7 @@ func ScrapKBZ(url string) ([]string, string) {
 
 	doc.Find(".answer tbody tr").Each(func(i int, s *goquery.Selection) {
 		s.Find("td").Each(func(u int, t *goquery.Selection) {
-			tmp = append(tmp, t.Text())
+			tmp = append(tmp, str.TrimSpace(t.Text()))
 		})
 	})
 
