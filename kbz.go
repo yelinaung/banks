@@ -21,9 +21,7 @@ func ScrapWork(url string) []string {
 	// doc, err := goquery.NewDocumentFromReader(f)
 
 	doc, err := goquery.NewDocument(url)
-	if err != nil {
-		PanicIf(err)
-	}
+	PanicIf(err)
 
 	doc.Find(".answer tbody tr").Each(func(i int, s *goquery.Selection) {
 		s.Find("td").Each(func(u int, t *goquery.Selection) {
@@ -41,10 +39,12 @@ func Process(temp []string) Bank {
 
 	k := Bank{}
 
+	k.Name = "KBZ"
+	k.Base = "MMK"
+	k.Time = time.Now().String()
+
+	// I don't know why I do this lol
 	for j, _ := range temp {
-		k.Name = "KBZ"
-		k.Base = "MMK"
-		k.Time = time.Now().String()
 		if j%3 == 0 {
 			currencies = append(currencies, str.TrimSpace(temp[j]))
 		}
@@ -61,7 +61,7 @@ func Process(temp []string) Bank {
 	return k
 }
 
-func main() {
+func main2() {
 
 	raw := ScrapWork(kbz)
 	bank := Process(raw)
@@ -71,22 +71,4 @@ func main() {
 		c.JSON(200, bank)
 	})
 	router.Run(":3001")
-}
-
-func PanicIf(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-type Bank struct {
-	Name  string               `json:"name"`
-	Base  string               `json:"base"`
-	Time  string               `json:"time"`
-	Rates []map[string]BuySell `json:"rates"`
-}
-
-type BuySell struct {
-	Buy  string `json:"buy"`
-	Sell string `json:"sell"`
 }
