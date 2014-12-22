@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
+	"github.com/russross/blackfriday"
+	"io/ioutil"
 	"os"
 	str "strings"
 	"time"
@@ -77,9 +79,9 @@ func main() {
 	rawKBZ, kbz := ScrapKBZ(kbz)
 	rawCB, cb := ScrapCB(cb)
 
-	router := gin.Default()
+	r := gin.Default()
 
-	router.GET("/:bank", func(c *gin.Context) {
+	r.GET("/:bank", func(c *gin.Context) {
 		bankName := c.Params.ByName("bank")
 
 		if bankName == "kbz" {
@@ -91,7 +93,14 @@ func main() {
 		}
 	})
 
-	router.Run(":" + os.Getenv("PORT"))
+	r.GET("/", func(c *gin.Context) {
+		body, err := ioutil.ReadFile("README.md")
+		PanicIf(err)
+		c.String(200,
+			string(blackfriday.MarkdownBasic([]byte(body))))
+	})
+
+	r.Run(":" + os.Getenv("PORT"))
 }
 
 func PanicIf(err error) {
