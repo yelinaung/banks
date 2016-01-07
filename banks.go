@@ -18,12 +18,6 @@ var (
 func ScrapKBZ(url string) ([]string, string) {
 	tmp := []string{}
 
-	// Using with file
-	// f, err := os.Open("kbz.html")
-	// PanicIf(err)
-	// defer f.Close()
-	// doc, err := goquery.NewDocumentFromReader(f)
-
 	doc, err := goquery.NewDocument(url)
 	PanicIf(err)
 
@@ -34,6 +28,22 @@ func ScrapKBZ(url string) ([]string, string) {
 	})
 
 	return tmp, "kbz"
+}
+
+func scrapAGD() ([]string, string) {
+	tmp := []string{}
+	// Using with file
+	f, err := os.Open("agd.html")
+	PanicIf(err)
+	defer f.Close()
+	doc, err := goquery.NewDocumentFromReader(f)
+	doc.Find("#curency-table tbody tr").Each(func(i int, s *goquery.Selection) {
+		s.Find("td").Each(func(u int, t *goquery.Selection) {
+			tmp = append(tmp, str.TrimSpace(t.Text()))
+		})
+	})
+
+	return tmp, "agd"
 }
 
 func ScrapCB(url string) ([]string, string) {
@@ -50,13 +60,14 @@ func ScrapCB(url string) ([]string, string) {
 }
 
 func Process(tmp []string, bName string) Bank {
-
 	bank := Bank{}
 
 	if bName == "kbz" {
 		bank.Name = "KBZ"
 	} else if bName == "cb" {
 		bank.Name = "CB"
+	} else if bName == "agd" {
+		bank.Name = "AGD"
 	}
 
 	bank.Base = "MMK"
@@ -76,6 +87,7 @@ func Process(tmp []string, bName string) Bank {
 
 func main() {
 
+	rawAGD, agd := scrapAGD()
 	rawKBZ, kbz := ScrapKBZ(kbz)
 	rawCB, cb := ScrapCB(cb)
 
@@ -89,6 +101,9 @@ func main() {
 			c.JSON(200, bank)
 		} else if bankName == "cb" {
 			bank := Process(rawCB, cb)
+			c.JSON(200, bank)
+		} else if bankName == "agd" {
+			bank := Process(rawAGD, agd)
 			c.JSON(200, bank)
 		}
 	})
