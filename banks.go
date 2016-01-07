@@ -1,17 +1,19 @@
 package main
 
 import (
-	"github.com/PuerkitoBio/goquery"
-	"github.com/gin-gonic/gin"
 	"os"
 	str "strings"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/gin-gonic/gin"
 )
 
 var (
 	kbz = "http://www.kbzbank.com"
 	cb  = "http://www.cbbank.com.mm/exchange_rate.aspx"
 	agd = "http://www.agdbank.com"
+	aya = "http://ayabank.com"
 )
 
 func scrapKBZ() []string {
@@ -31,11 +33,6 @@ func scrapKBZ() []string {
 
 func scrapAGD() []string {
 	tmp := []string{}
-	// Using with file
-	// f, err := os.Open("agd.html")
-	// PanicIf(err)
-	// defer f.Close()
-	// doc, err := goquery.NewDocumentFromReader(f)
 
 	doc, err := goquery.NewDocument(agd)
 	PanicIf(err)
@@ -62,6 +59,24 @@ func scrapCB() []string {
 	return tmp
 }
 
+func scrapAYA() []string {
+	tmp := []string{}
+
+	// Using with file
+	// f, err := os.Open("aya.html")
+	// PanicIf(err)
+	// defer f.Close()
+	// doc, err := goquery.NewDocumentFromReader(f)
+	doc, err := goquery.NewDocument(aya)
+	PanicIf(err)
+
+	doc.Find("#tablepress-2 tr").Slice(1, 4).Find("td").Each(func(i int, s *goquery.Selection) {
+		tmp = append(tmp, str.TrimSpace(s.Text()))
+	})
+
+	return tmp
+}
+
 func process(tmp []string) Bank {
 	bank := Bank{}
 
@@ -82,25 +97,23 @@ func process(tmp []string) Bank {
 
 func main() {
 
-	rawAGD := scrapAGD()
-	rawKBZ := scrapKBZ()
-	rawCB := scrapCB()
-
 	r := gin.Default()
 
 	var bank Bank
 	r.GET("/:bank", func(c *gin.Context) {
 		bankName := c.Params.ByName("bank")
-
 		if bankName == "kbz" {
-			bank = process(rawKBZ)
+			bank = process(scrapKBZ())
 			bank.Name = "KBZ"
 		} else if bankName == "cb" {
-			bank = process(rawCB)
+			bank = process(scrapCB())
 			bank.Name = "CB"
 		} else if bankName == "agd" {
 			bank.Name = "AGD"
-			bank = process(rawAGD)
+			bank = process(scrapAGD())
+		} else if bankName == "aya" {
+			bank.Name = "AYA"
+			bank = process(scrapAYA())
 		}
 		c.JSON(200, bank)
 	})
