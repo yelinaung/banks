@@ -3,8 +3,6 @@ package main
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
-	"github.com/russross/blackfriday"
-	"io/ioutil"
 	"os"
 	str "strings"
 	"time"
@@ -13,9 +11,10 @@ import (
 var (
 	kbz = "http://www.kbzbank.com"
 	cb  = "http://www.cbbank.com.mm/exchange_rate.aspx"
+	agd = "http://www.agdbank.com"
 )
 
-func scrapKBZ(url string) ([]string, string) {
+func scrapKBZ(url string) []string {
 	tmp := []string{}
 
 	doc, err := goquery.NewDocument(url)
@@ -27,10 +26,10 @@ func scrapKBZ(url string) ([]string, string) {
 		})
 	})
 
-	return tmp, "kbz"
+	return tmp
 }
 
-func scrapAGD() ([]string, string) {
+func scrapAGD() []string {
 	tmp := []string{}
 	// Using with file
 	f, err := os.Open("agd.html")
@@ -43,10 +42,10 @@ func scrapAGD() ([]string, string) {
 		})
 	})
 
-	return tmp, "agd"
+	return tmp
 }
 
-func scrapCB(url string) ([]string, string) {
+func scrapCB(url string) []string {
 	tmp := []string{}
 
 	doc, err := goquery.NewDocument(url)
@@ -56,19 +55,11 @@ func scrapCB(url string) ([]string, string) {
 		tmp = append(tmp, str.TrimSpace(s.Text()))
 	})
 
-	return tmp, "cb"
+	return tmp
 }
 
-func process(tmp []string, bName string) Bank {
+func process(tmp []string) Bank {
 	bank := Bank{}
-
-	if bName == "kbz" {
-		bank.Name = "KBZ"
-	} else if bName == "cb" {
-		bank.Name = "CB"
-	} else if bName == "agd" {
-		bank.Name = "AGD"
-	}
 
 	bank.Base = "MMK"
 	bank.Time = time.Now().String()
@@ -87,32 +78,27 @@ func process(tmp []string, bName string) Bank {
 
 func main() {
 
-	rawAGD, agd := scrapAGD()
-	rawKBZ, kbz := scrapKBZ(kbz)
-	rawCB, cb := scrapCB(cb)
+	rawAGD := scrapAGD()
+	rawKBZ := scrapKBZ(kbz)
+	rawCB := scrapCB(cb)
 
 	r := gin.Default()
 
+	var bank Bank
 	r.GET("/:bank", func(c *gin.Context) {
 		bankName := c.Params.ByName("bank")
 
 		if bankName == "kbz" {
-			bank := process(rawKBZ, kbz)
-			c.JSON(200, bank)
+			bank = process(rawKBZ)
+			bank.Name = "KBZ"
 		} else if bankName == "cb" {
-			bank := process(rawCB, cb)
-			c.JSON(200, bank)
+			bank = process(rawCB)
+			bank.Name = "CB"
 		} else if bankName == "agd" {
-			bank := process(rawAGD, agd)
-			c.JSON(200, bank)
+			bank.Name = "AGD"
+			bank = process(rawAGD)
 		}
-	})
-
-	r.GET("/", func(c *gin.Context) {
-		body, err := ioutil.ReadFile("README.md")
-		PanicIf(err)
-		c.String(200,
-			string(blackfriday.MarkdownBasic([]byte(body))))
+		c.JSON(200, bank)
 	})
 
 	r.Run(":" + os.Getenv("PORT"))
