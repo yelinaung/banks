@@ -14,10 +14,10 @@ var (
 	agd = "http://www.agdbank.com"
 )
 
-func scrapKBZ(url string) []string {
+func scrapKBZ() []string {
 	tmp := []string{}
 
-	doc, err := goquery.NewDocument(url)
+	doc, err := goquery.NewDocument(kbz)
 	PanicIf(err)
 
 	doc.Find(".answer tbody tr").Each(func(i int, s *goquery.Selection) {
@@ -32,10 +32,14 @@ func scrapKBZ(url string) []string {
 func scrapAGD() []string {
 	tmp := []string{}
 	// Using with file
-	f, err := os.Open("agd.html")
+	// f, err := os.Open("agd.html")
+	// PanicIf(err)
+	// defer f.Close()
+	// doc, err := goquery.NewDocumentFromReader(f)
+
+	doc, err := goquery.NewDocument(agd)
 	PanicIf(err)
-	defer f.Close()
-	doc, err := goquery.NewDocumentFromReader(f)
+
 	doc.Find("#curency-table tbody tr").Each(func(i int, s *goquery.Selection) {
 		s.Find("td").Each(func(u int, t *goquery.Selection) {
 			tmp = append(tmp, str.TrimSpace(t.Text()))
@@ -45,10 +49,10 @@ func scrapAGD() []string {
 	return tmp
 }
 
-func scrapCB(url string) []string {
+func scrapCB() []string {
 	tmp := []string{}
 
-	doc, err := goquery.NewDocument(url)
+	doc, err := goquery.NewDocument(cb)
 	PanicIf(err)
 
 	doc.Find("table tr").Slice(1, 4).Find("td").Each(func(i int, s *goquery.Selection) {
@@ -79,8 +83,8 @@ func process(tmp []string) Bank {
 func main() {
 
 	rawAGD := scrapAGD()
-	rawKBZ := scrapKBZ(kbz)
-	rawCB := scrapCB(cb)
+	rawKBZ := scrapKBZ()
+	rawCB := scrapCB()
 
 	r := gin.Default()
 
