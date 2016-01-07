@@ -15,7 +15,7 @@ var (
 	cb  = "http://www.cbbank.com.mm/exchange_rate.aspx"
 )
 
-func ScrapKBZ(url string) ([]string, string) {
+func scrapKBZ(url string) ([]string, string) {
 	tmp := []string{}
 
 	doc, err := goquery.NewDocument(url)
@@ -46,7 +46,7 @@ func scrapAGD() ([]string, string) {
 	return tmp, "agd"
 }
 
-func ScrapCB(url string) ([]string, string) {
+func scrapCB(url string) ([]string, string) {
 	tmp := []string{}
 
 	doc, err := goquery.NewDocument(url)
@@ -59,7 +59,7 @@ func ScrapCB(url string) ([]string, string) {
 	return tmp, "cb"
 }
 
-func Process(tmp []string, bName string) Bank {
+func process(tmp []string, bName string) Bank {
 	bank := Bank{}
 
 	if bName == "kbz" {
@@ -88,8 +88,8 @@ func Process(tmp []string, bName string) Bank {
 func main() {
 
 	rawAGD, agd := scrapAGD()
-	rawKBZ, kbz := ScrapKBZ(kbz)
-	rawCB, cb := ScrapCB(cb)
+	rawKBZ, kbz := scrapKBZ(kbz)
+	rawCB, cb := scrapCB(cb)
 
 	r := gin.Default()
 
@@ -97,13 +97,13 @@ func main() {
 		bankName := c.Params.ByName("bank")
 
 		if bankName == "kbz" {
-			bank := Process(rawKBZ, kbz)
+			bank := process(rawKBZ, kbz)
 			c.JSON(200, bank)
 		} else if bankName == "cb" {
-			bank := Process(rawCB, cb)
+			bank := process(rawCB, cb)
 			c.JSON(200, bank)
 		} else if bankName == "agd" {
-			bank := Process(rawAGD, agd)
+			bank := process(rawAGD, agd)
 			c.JSON(200, bank)
 		}
 	})
