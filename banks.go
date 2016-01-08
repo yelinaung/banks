@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	str "strings"
 	"time"
@@ -12,7 +13,7 @@ import (
 var (
 	kbz = "http://www.kbzbank.com"
 	cb  = "http://www.cbbank.com.mm/exchange_rate.aspx"
-	agd = "http://www.agdbank.com"
+	agd = "http://myanmarbank.asia/category/exchange-rate"
 	aya = "http://ayabank.com"
 )
 
@@ -31,17 +32,26 @@ func scrapKBZ() []string {
 	return tmp
 }
 
+// Scraping from the url NOTworking (yet)
+// Found the cause but no solution yet
 func scrapAGD() []string {
 	tmp := []string{}
 
+	// Using with file
+	// f, err := os.Open("agd.html")
+	// PanicIf(err)
+	// defer f.Close()
+	// doc, err := goquery.NewDocumentFromReader(f)
 	doc, err := goquery.NewDocument(agd)
 	PanicIf(err)
 
-	doc.Find("#curency-table tbody tr").Each(func(i int, s *goquery.Selection) {
-		s.Find("td").Each(func(u int, t *goquery.Selection) {
-			tmp = append(tmp, str.TrimSpace(t.Text()))
-		})
-	})
+	// doc.Find("#curency-table").Slice(1, 4).Find("tr").Each(func(i int, s *goquery.Selection) {
+	fmt.Println(str.TrimSpace(doc.Find("#curency-table tbody").Text()))
+	// tmp = append(tmp, str.TrimSpace(s.Text()))
+	//s.Find("td").Each(func(u int, t *goquery.Selection) {
+	//	tmp = append(tmp, str.TrimSpace(t.Text()))
+	//})
+	// })
 
 	return tmp
 }
@@ -62,11 +72,6 @@ func scrapCB() []string {
 func scrapAYA() []string {
 	tmp := []string{}
 
-	// Using with file
-	// f, err := os.Open("aya.html")
-	// PanicIf(err)
-	// defer f.Close()
-	// doc, err := goquery.NewDocumentFromReader(f)
 	doc, err := goquery.NewDocument(aya)
 	PanicIf(err)
 
@@ -97,6 +102,8 @@ func process(tmp []string) Bank {
 
 func main() {
 
+	// fmt.Println("agd ", scrapAGD())
+
 	r := gin.Default()
 
 	var bank Bank
@@ -108,9 +115,9 @@ func main() {
 		} else if bankName == "cb" {
 			bank = process(scrapCB())
 			bank.Name = "CB"
-		} else if bankName == "agd" {
-			bank.Name = "AGD"
-			bank = process(scrapAGD())
+			//		} else if bankName == "agd" {
+			//			bank.Name = "AGD"
+			//			bank = process(scrapAGD())
 		} else if bankName == "aya" {
 			bank.Name = "AYA"
 			bank = process(scrapAYA())
