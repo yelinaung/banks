@@ -1,8 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
 	"os"
+	"strconv"
 	str "strings"
 	"time"
 
@@ -13,8 +16,10 @@ import (
 var (
 	kbz = "http://www.kbzbank.com"
 	cb  = "http://www.cbbank.com.mm/exchange_rate.aspx"
-	agd = "http://myanmarbank.asia/category/exchange-rate"
 	aya = "http://ayabank.com"
+
+	// Turns out AGD was loading data through ajax
+	agd = "https://ibanking.agdbank.com.mm/RateInfo?id=ALFKI&callback=?"
 )
 
 func scrapKBZ() []string {
@@ -41,17 +46,33 @@ func scrapAGD() []string {
 	// f, err := os.Open("agd.html")
 	// PanicIf(err)
 	// defer f.Close()
-	// doc, err := goquery.NewDocumentFromReader(f)
-	doc, err := goquery.NewDocument(agd)
+	// doc, err := goquery.NewDocument(agd)
+
+	response, err := http.Get(agd)
+	PanicIf(err)
+	defer response.Body.Close()
+
+	contents, err := ioutil.ReadAll(response.Body)
 	PanicIf(err)
 
-	// doc.Find("#curency-table").Slice(1, 4).Find("tr").Each(func(i int, s *goquery.Selection) {
-	fmt.Println(str.TrimSpace(doc.Find("#curency-table tbody").Text()))
-	// tmp = append(tmp, str.TrimSpace(s.Text()))
-	//s.Find("td").Each(func(u int, t *goquery.Selection) {
-	//	tmp = append(tmp, str.TrimSpace(t.Text()))
-	//})
-	// })
+	st := string(contents)
+	st = str.Replace(st, "?", "", -1)
+	st = str.Replace(st, "(", "", -1)
+	st = str.Replace(st, ")", "", -1)
+	st = str.Replace(st, ";", "", -1)
+
+	a := new(AGD)
+	json.Unmarshal([]byte(st), a)
+
+	tmp = append(tmp, "EURO")
+	tmp = append(tmp, floatToString(a.Exchangerates[1].Rate))
+	tmp = append(tmp, floatToString(a.Exchangerates[0].Rate))
+	tmp = append(tmp, "SGD")
+	tmp = append(tmp, floatToString(a.Exchangerates[3].Rate))
+	tmp = append(tmp, floatToString(a.Exchangerates[2].Rate))
+	tmp = append(tmp, "USD")
+	tmp = append(tmp, floatToString(a.Exchangerates[5].Rate))
+	tmp = append(tmp, floatToString(a.Exchangerates[4].Rate))
 
 	return tmp
 }
@@ -101,9 +122,6 @@ func process(tmp []string) Bank {
 }
 
 func main() {
-
-	// fmt.Println("agd ", scrapAGD())
-
 	r := gin.Default()
 
 	var bank Bank
@@ -113,18 +131,17 @@ func main() {
 			bank = process(scrapKBZ())
 			bank.Name = "KBZ"
 		} else if bankName == "cb" {
-			bank.Name = "CB"
 			bank = process(scrapCB())
-			//		} else if bankName == "agd" {
-			//			bank.Name = "AGD"
-			//			bank = process(scrapAGD())
+			bank.Name = "CB"
+		} else if bankName == "agd" {
+			bank = process(scrapAGD())
+			bank.Name = "AGD"
 		} else if bankName == "aya" {
 			bank = process(scrapAYA())
 			bank.Name = "AYA"
 		}
 		c.JSON(200, bank)
 	})
-
 	r.Run(":" + os.Getenv("PORT"))
 }
 
@@ -141,7 +158,20 @@ type Bank struct {
 	Rates []map[string]BuySell `json:"rates"`
 }
 
+type AGD struct {
+	Exchangerates []struct {
+		From string  `json:"From"`
+		To   string  `json:"To"`
+		Rate float64 `json:"Rate"`
+	} `json:"ExchangeRates"`
+}
+
 type BuySell struct {
 	Buy  string `json:"buy"`
 	Sell string `json:"sell"`
+}
+
+func floatToString(input_num float64) string {
+	// to convert a float number to a string
+	return strconv.FormatFloat(input_num, 'f', 2, 64)
 }
