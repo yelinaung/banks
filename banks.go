@@ -45,7 +45,7 @@ func scrapKBZ() []string {
 	return tmp
 }
 
-func scrapUAB() [] string {
+func scrapUAB() []string {
 	tmp := []string{}
 	//f, err := os.Open("uab.html")
 	//PanicIf(err)
@@ -170,26 +170,29 @@ func main() {
 	var bank Bank
 	r.GET("/:bank", func(c *gin.Context) {
 		bankName := c.Params.ByName("bank")
-		if bankName == "kbz" {
+		switch bankName {
+		case "kbz":
 			bank = process(scrapKBZ())
 			bank.Name = "KBZ"
-		} else if bankName == "mab" {
+		case "mab":
 			bank = process(scrapMAB())
 			bank.Name = "MAB"
-		} else if bankName == "uab" {
+		case "uab":
 			bank = process(scrapUAB())
 			bank.Name = "UAB"
-		} else if bankName == "cb" {
+		case "cb":
 			bank = process(scrapCB())
 			bank.Name = "CB"
-		} else if bankName == "agd" {
+		case "agd":
 			bank = process(scrapAGD())
 			bank.Name = "AGD"
-		} else if bankName == "aya" {
+		case "aya":
 			bank = process(scrapAYA())
 			bank.Name = "AYA"
+		default:
+		// TODO	what to reply for default
 		}
-		c.JSON(200, bank)
+		c.JSON(http.StatusOK, bank)
 	})
 	r.Run(":" + os.Getenv("PORT"))
 }
