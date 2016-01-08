@@ -166,6 +166,10 @@ func main() {
 	r := gin.Default()
 	//
 	var bank Bank
+	r.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK,
+			"Nothing to see here.Check https://github.com/yelinaung/banks")
+	})
 	r.GET("/:bank", func(c *gin.Context) {
 		bankName := c.Params.ByName("bank")
 		switch bankName {
