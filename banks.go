@@ -19,8 +19,6 @@ var (
 	aya = "http://ayabank.com"
 	mab = "http://www.mabbank.com"
 	uab = "http://www.unitedamarabank.com"
-
-// Turns out AGD was loading data through ajax
 	agd = "https://ibanking.agdbank.com.mm/RateInfo?id=ALFKI&callback=?"
 )
 
@@ -47,7 +45,7 @@ func scrapKBZ() []string {
 
 func scrapUAB() []string {
 	tmp := []string{}
-	//f, err := os.Open("uab.html")
+	//f, err := os.Open("")
 	//PanicIf(err)
 	//defer f.Close();
 	//doc, err := goquery.NewDocumentFromReader(f)
@@ -84,14 +82,14 @@ func scrapAGD() []string {
 	json.Unmarshal([]byte(st), a)
 
 	tmp = append(tmp, "EURO")
-	tmp = append(tmp, floatToString(a.Exchangerates[1].Rate))
-	tmp = append(tmp, floatToString(a.Exchangerates[0].Rate))
+	tmp = append(tmp, floatToString(a.ExchangeRates[1].Rate))
+	tmp = append(tmp, floatToString(a.ExchangeRates[0].Rate))
 	tmp = append(tmp, "SGD")
-	tmp = append(tmp, floatToString(a.Exchangerates[3].Rate))
-	tmp = append(tmp, floatToString(a.Exchangerates[2].Rate))
+	tmp = append(tmp, floatToString(a.ExchangeRates[3].Rate))
+	tmp = append(tmp, floatToString(a.ExchangeRates[2].Rate))
 	tmp = append(tmp, "USD")
-	tmp = append(tmp, floatToString(a.Exchangerates[5].Rate))
-	tmp = append(tmp, floatToString(a.Exchangerates[4].Rate))
+	tmp = append(tmp, floatToString(a.ExchangeRates[5].Rate))
+	tmp = append(tmp, floatToString(a.ExchangeRates[4].Rate))
 
 	return tmp
 }
@@ -211,7 +209,7 @@ type Bank struct {
 }
 
 type AGD struct {
-	Exchangerates []struct {
+	ExchangeRates []struct {
 		From string  `json:"From"`
 		To   string  `json:"To"`
 		Rate float64 `json:"Rate"`
@@ -223,7 +221,7 @@ type BuySell struct {
 	Sell string `json:"sell"`
 }
 
-func floatToString(input_num float64) string {
+func floatToString(inputName float64) string {
 	// to convert a float number to a string
-	return strconv.FormatFloat(input_num, 'f', 2, 64)
+	return strconv.FormatFloat(inputName, 'f', 2, 64)
 }
