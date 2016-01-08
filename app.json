@@ -1,0 +1,7 @@
+{
+  "name": "Banks",
+  "description": "Scrap and Show API for various Banks in Myanmar",
+  "repository": "https://github.com/yelinaung/banks",
+  "logo": "",
+  "keywords": ["golang", "myanmar", "banks"]
+}

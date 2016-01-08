@@ -27,6 +27,10 @@ CB  - `localhost:8080/cb`
 AYA - `localhost:8080/aya` 
 AGD - `localhost:8080/agd` 
 
+You can try deploying to [Heroku](www.heroku.com) too
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
 ## Sample response
 
 ```json
