@@ -3,10 +3,13 @@
 Just scrap-and-show API for currency exchange rates of Banks in Myanmar.
 
 Supported banks
+
 - [KBZ Bank](http://www.kbzbank.com)
 - [CB Bank](http://www.cbbank.com.mm)
 - [AYA Bank](http://ayabank.com)
 - [AGD Bank](http://www.agdbank.com)
+- [MAB](http://www.mabbank.com)
+- [UAB](http://www.unitedamarabank.com)
 
 
 ## How to run
@@ -22,10 +25,12 @@ You have to put the bank name as parameters in path
 
 e.g For KBZ, put the bank name after the base url. Same for other banks.
 
-KBZ - `localhost:8080/kbz` 
-CB  - `localhost:8080/cb` 
-AYA - `localhost:8080/aya` 
-AGD - `localhost:8080/agd` 
+- KBZ - `localhost:8080/kbz`
+- CB  - `localhost:8080/cb`
+- AYA - `localhost:8080/aya`
+- AGD - `localhost:8080/agd`
+- MAB - `localhost:8080/mab`
+- UAB - `localhost:8080/uab`
 
 You can try deploying to [Heroku](www.heroku.com) too
 
