@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strconv"
 	str "strings"
 	"time"
 
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
+	"os"
 )
 
 var (
@@ -43,6 +42,23 @@ func scrapKBZ() []string {
 		})
 	})
 
+	return tmp
+}
+
+func scrapUAB() [] string {
+	tmp := []string{}
+	//f, err := os.Open("uab.html")
+	//PanicIf(err)
+	//defer f.Close();
+	//doc, err := goquery.NewDocumentFromReader(f)
+	doc, err := goquery.NewDocument(uab)
+	PanicIf(err)
+
+	doc.Find(".ex_rate .ex_body").Slice(1, 4).Each(func(i int, s *goquery.Selection) {
+		s.Find("ul li").Each(func(u int, t *goquery.Selection) {
+			tmp = append(tmp, str.TrimSpace(t.Text()))
+		})
+	})
 	return tmp
 }
 
@@ -147,7 +163,7 @@ func process(tmp []string) Bank {
 
 func main() {
 
-	fmt.Println(scrapMAB())
+	//fmt.Println("UAB ", scrapUAB())
 
 	r := gin.Default()
 	//
@@ -160,17 +176,19 @@ func main() {
 		} else if bankName == "mab" {
 			bank = process(scrapMAB())
 			bank.Name = "MAB"
+		} else if bankName == "uab" {
+			bank = process(scrapUAB())
+			bank.Name = "UAB"
+		} else if bankName == "cb" {
+			bank = process(scrapCB())
+			bank.Name = "CB"
+		} else if bankName == "agd" {
+			bank = process(scrapAGD())
+			bank.Name = "AGD"
+		} else if bankName == "aya" {
+			bank = process(scrapAYA())
+			bank.Name = "AYA"
 		}
-		//	} else if bankName == "cb" {
-		//		bank = process(scrapCB())
-		//		bank.Name = "CB"
-		//	} else if bankName == "agd" {
-		//		bank = process(scrapAGD())
-		//		bank.Name = "AGD"
-		//	} else if bankName == "aya" {
-		//		bank = process(scrapAYA())
-		//		bank.Name = "AYA"
-		//	}
 		c.JSON(200, bank)
 	})
 	r.Run(":" + os.Getenv("PORT"))
