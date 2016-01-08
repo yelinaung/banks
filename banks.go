@@ -25,6 +25,12 @@ var (
 func scrapKBZ() []string {
 	tmp := []string{}
 
+	// Using with file
+	// f, err := os.Open("agd.html")
+	// PanicIf(err)
+	// defer f.Close()
+	// doc, err := goquery.NewDocument(agd)
+
 	doc, err := goquery.NewDocument(kbz)
 	PanicIf(err)
 
@@ -37,16 +43,8 @@ func scrapKBZ() []string {
 	return tmp
 }
 
-// Scraping from the url NOTworking (yet)
-// Found the cause but no solution yet
 func scrapAGD() []string {
 	tmp := []string{}
-
-	// Using with file
-	// f, err := os.Open("agd.html")
-	// PanicIf(err)
-	// defer f.Close()
-	// doc, err := goquery.NewDocument(agd)
 
 	response, err := http.Get(agd)
 	PanicIf(err)
@@ -55,6 +53,8 @@ func scrapAGD() []string {
 	contents, err := ioutil.ReadAll(response.Body)
 	PanicIf(err)
 
+	// contents has extra characters which causes
+	// invalid json structure
 	st := string(contents)
 	st = str.Replace(st, "?", "", -1)
 	st = str.Replace(st, "(", "", -1)

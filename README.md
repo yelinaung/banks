@@ -3,10 +3,10 @@
 Just scrap-and-show API for currency exchange rates of Banks in Myanmar.
 
 Supported banks
-- [KBZ](kbzbank.com)
-- [CB](www.cbbank.com.mm)
-
-The sample app is up and running at [https://young-plains-2161.herokuapp.com/kbz](https://young-plains-2161.herokuapp.com/kbz)
+- [KBZ Bank](http://www.kbzbank.com)
+- [CB Bank](http://www.cbbank.com.mm)
+- [AYA Bank](http://ayabank.com)
+- [AGD Bank](http://www.agdbank.com)
 
 
 ## How to run
@@ -20,9 +20,12 @@ $ export PORT="8080" && go run banks.go
 
 You have to put the bank name as parameters in path
 
-e.g For KBZ, put the bank name after the base url. Same for CB.
+e.g For KBZ, put the bank name after the base url. Same for other banks.
 
-`localhost:3001/kbz`
+KBZ - `localhost:8080/kbz` 
+CB  - `localhost:8080/cb` 
+AYA - `localhost:8080/aya` 
+AGD - `localhost:8080/agd` 
 
 ## Sample response
 
@@ -57,7 +60,7 @@ e.g For KBZ, put the bank name after the base url. Same for CB.
 ## TODO
 
 - ~~Deploy to Heroku~~
-- To add AGD 
+- ~~To add AGD & AYA~~
 - To scrap periodically ?
 - To cache with the dates ?
 
