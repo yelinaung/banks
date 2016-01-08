@@ -178,9 +178,9 @@ func main() {
 		case "uab":
 			bank = process(scrapUAB())
 			bank.Name = "UAB"
-		case "cb":
+		case "cbb":
 			bank = process(scrapCB())
-			bank.Name = "CB"
+			bank.Name = "CBB"
 		case "agd":
 			bank = process(scrapAGD())
 			bank.Name = "AGD"

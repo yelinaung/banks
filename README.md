@@ -26,7 +26,7 @@ You have to put the bank name as parameters in path
 e.g For KBZ, put the bank name after the base url. Same for other banks.
 
 - KBZ - `localhost:8080/kbz`
-- CB  - `localhost:8080/cb`
+- CBB - `localhost:8080/cbb`
 - AYA - `localhost:8080/aya`
 - AGD - `localhost:8080/agd`
 - MAB - `localhost:8080/mab`
