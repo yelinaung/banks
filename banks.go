@@ -16,12 +16,12 @@ import (
 
 var (
 	kbz = "http://www.kbzbank.com"
-	cb  = "http://www.cbbank.com.mm/exchange_rate.aspx"
+	cb = "http://www.cbbank.com.mm/exchange_rate.aspx"
 	aya = "http://ayabank.com"
 	mab = "http://www.mabbank.com"
 	uab = "http://www.unitedamarabank.com"
 
-	// Turns out AGD was loading data through ajax
+// Turns out AGD was loading data through ajax
 	agd = "https://ibanking.agdbank.com.mm/RateInfo?id=ALFKI&callback=?"
 )
 
@@ -110,10 +110,11 @@ func scrapMAB() []string {
 	tmp := []string{}
 
 	// Using with file
-	f, err := os.Open("mab.html")
-	PanicIf(err)
-	defer f.Close()
-	doc, err := goquery.NewDocumentFromReader(f)
+	//f, err := os.Open("mab.html")
+	//PanicIf(err)
+	//defer f.Close()
+	// doc, err := goquery.NewDocumentFromReader(f)
+	doc, err := goquery.NewDocument(mab)
 
 	PanicIf(err)
 
@@ -158,7 +159,7 @@ func main() {
 			bank.Name = "KBZ"
 		} else if bankName == "mab" {
 			bank = process(scrapMAB())
-			bank.Name = "AYA"
+			bank.Name = "MAB"
 		}
 		//	} else if bankName == "cb" {
 		//		bank = process(scrapCB())
