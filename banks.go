@@ -113,14 +113,14 @@ func main() {
 			bank = process(scrapKBZ())
 			bank.Name = "KBZ"
 		} else if bankName == "cb" {
-			bank = process(scrapCB())
 			bank.Name = "CB"
+			bank = process(scrapCB())
 			//		} else if bankName == "agd" {
 			//			bank.Name = "AGD"
 			//			bank = process(scrapAGD())
 		} else if bankName == "aya" {
-			bank.Name = "AYA"
 			bank = process(scrapAYA())
+			bank.Name = "AYA"
 		}
 		c.JSON(200, bank)
 	})
