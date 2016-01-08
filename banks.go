@@ -9,6 +9,7 @@ import (
 	str "strings"
 	"time"
 
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
 )
@@ -17,6 +18,8 @@ var (
 	kbz = "http://www.kbzbank.com"
 	cb  = "http://www.cbbank.com.mm/exchange_rate.aspx"
 	aya = "http://ayabank.com"
+	mab = "http://www.mabbank.com"
+	uab = "http://www.unitedamarabank.com"
 
 	// Turns out AGD was loading data through ajax
 	agd = "https://ibanking.agdbank.com.mm/RateInfo?id=ALFKI&callback=?"
@@ -103,6 +106,26 @@ func scrapAYA() []string {
 	return tmp
 }
 
+func scrapMAB() []string {
+	tmp := []string{}
+
+	// Using with file
+	f, err := os.Open("mab.html")
+	PanicIf(err)
+	defer f.Close()
+	doc, err := goquery.NewDocumentFromReader(f)
+
+	PanicIf(err)
+
+	doc.Find("#block-block-5 tbody tr").Slice(1, 4).Each(func(i int, s *goquery.Selection) {
+		s.Find("td").Each(func(u int, t *goquery.Selection) {
+			tmp = append(tmp, str.TrimSpace(t.Text()))
+		})
+	})
+
+	return tmp
+}
+
 func process(tmp []string) Bank {
 	bank := Bank{}
 
@@ -122,24 +145,31 @@ func process(tmp []string) Bank {
 }
 
 func main() {
-	r := gin.Default()
 
+	fmt.Println(scrapMAB())
+
+	r := gin.Default()
+	//
 	var bank Bank
 	r.GET("/:bank", func(c *gin.Context) {
 		bankName := c.Params.ByName("bank")
 		if bankName == "kbz" {
 			bank = process(scrapKBZ())
 			bank.Name = "KBZ"
-		} else if bankName == "cb" {
-			bank = process(scrapCB())
-			bank.Name = "CB"
-		} else if bankName == "agd" {
-			bank = process(scrapAGD())
-			bank.Name = "AGD"
-		} else if bankName == "aya" {
-			bank = process(scrapAYA())
+		} else if bankName == "mab" {
+			bank = process(scrapMAB())
 			bank.Name = "AYA"
 		}
+		//	} else if bankName == "cb" {
+		//		bank = process(scrapCB())
+		//		bank.Name = "CB"
+		//	} else if bankName == "agd" {
+		//		bank = process(scrapAGD())
+		//		bank.Name = "AGD"
+		//	} else if bankName == "aya" {
+		//		bank = process(scrapAYA())
+		//		bank.Name = "AYA"
+		//	}
 		c.JSON(200, bank)
 	})
 	r.Run(":" + os.Getenv("PORT"))
