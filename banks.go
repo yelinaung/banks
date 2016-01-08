@@ -14,12 +14,12 @@ import (
 )
 
 var (
-	kbz = "http://www.kbzbank.com"
-	cb = "http://www.cbbank.com.mm/exchange_rate.aspx"
-	aya = "http://ayabank.com"
-	mab = "http://www.mabbank.com"
-	uab = "http://www.unitedamarabank.com"
-	agd = "https://ibanking.agdbank.com.mm/RateInfo?id=ALFKI&callback=?"
+	kbzURL = "http://www.kbzbank.com"
+	cbbURL = "http://www.cbbank.com.mm/exchange_rate.aspx"
+	ayaURL = "http://ayabank.com"
+	mabURL = "http://www.mabbank.com"
+	uabURL = "http://www.unitedamarabank.com"
+	agdURL = "https://ibanking.agdbank.com.mm/RateInfo?id=ALFKI&callback=?"
 )
 
 func scrapKBZ() []string {
@@ -31,8 +31,8 @@ func scrapKBZ() []string {
 	// defer f.Close()
 	// doc, err := goquery.NewDocument(agd)
 
-	doc, err := goquery.NewDocument(kbz)
-	PanicIf(err)
+	doc, err := goquery.NewDocument(kbzURL)
+	panicIf(err)
 
 	doc.Find(".answer tbody tr").Each(func(i int, s *goquery.Selection) {
 		s.Find("td").Each(func(u int, t *goquery.Selection) {
@@ -49,8 +49,8 @@ func scrapUAB() []string {
 	//PanicIf(err)
 	//defer f.Close();
 	//doc, err := goquery.NewDocumentFromReader(f)
-	doc, err := goquery.NewDocument(uab)
-	PanicIf(err)
+	doc, err := goquery.NewDocument(uabURL)
+	panicIf(err)
 
 	doc.Find(".ex_rate .ex_body").Slice(1, 4).Each(func(i int, s *goquery.Selection) {
 		s.Find("ul li").Each(func(u int, t *goquery.Selection) {
@@ -63,12 +63,12 @@ func scrapUAB() []string {
 func scrapAGD() []string {
 	tmp := []string{}
 
-	response, err := http.Get(agd)
-	PanicIf(err)
+	response, err := http.Get(agdURL)
+	panicIf(err)
 	defer response.Body.Close()
 
 	contents, err := ioutil.ReadAll(response.Body)
-	PanicIf(err)
+	panicIf(err)
 
 	// contents has extra characters which causes
 	// invalid json structure
@@ -78,7 +78,7 @@ func scrapAGD() []string {
 	st = str.Replace(st, ")", "", -1)
 	st = str.Replace(st, ";", "", -1)
 
-	a := new(AGD)
+	a := new(agd)
 	json.Unmarshal([]byte(st), a)
 
 	tmp = append(tmp, "EURO")
@@ -94,11 +94,11 @@ func scrapAGD() []string {
 	return tmp
 }
 
-func scrapCB() []string {
+func scrapCBB() []string {
 	tmp := []string{}
 
-	doc, err := goquery.NewDocument(cb)
-	PanicIf(err)
+	doc, err := goquery.NewDocument(cbbURL)
+	panicIf(err)
 
 	doc.Find("table tr").Slice(1, 4).Find("td").Each(func(i int, s *goquery.Selection) {
 		tmp = append(tmp, str.TrimSpace(s.Text()))
@@ -110,8 +110,8 @@ func scrapCB() []string {
 func scrapAYA() []string {
 	tmp := []string{}
 
-	doc, err := goquery.NewDocument(aya)
-	PanicIf(err)
+	doc, err := goquery.NewDocument(ayaURL)
+	panicIf(err)
 
 	doc.Find("#tablepress-2 tr").Slice(1, 4).Find("td").Each(func(i int, s *goquery.Selection) {
 		tmp = append(tmp, str.TrimSpace(s.Text()))
@@ -122,15 +122,8 @@ func scrapAYA() []string {
 
 func scrapMAB() []string {
 	tmp := []string{}
-
-	// Using with file
-	//f, err := os.Open("mab.html")
-	//PanicIf(err)
-	//defer f.Close()
-	// doc, err := goquery.NewDocumentFromReader(f)
-	doc, err := goquery.NewDocument(mab)
-
-	PanicIf(err)
+	doc, err := goquery.NewDocument(mabURL)
+	panicIf(err)
 
 	doc.Find("#block-block-5 tbody tr").Slice(1, 4).Each(func(i int, s *goquery.Selection) {
 		s.Find("td").Each(func(u int, t *goquery.Selection) {
@@ -141,8 +134,8 @@ func scrapMAB() []string {
 	return tmp
 }
 
-func process(tmp []string) Bank {
-	bank := Bank{}
+func process(tmp []string) bank {
+	bank := bank{}
 
 	bank.Base = "MMK"
 	bank.Time = time.Now().String()
@@ -151,9 +144,9 @@ func process(tmp []string) Bank {
 	buy := []string{tmp[1], tmp[4], tmp[7]}
 	sell := []string{tmp[2], tmp[5], tmp[8]}
 
-	for x, _ := range currencies {
-		bank.Rates = append(bank.Rates, map[string]BuySell{
-			currencies[x]: BuySell{buy[x], sell[x]}})
+	for x := range currencies {
+		bank.Rates = append(bank.Rates, map[string]buySell{
+			currencies[x]: buySell{buy[x], sell[x]}})
 	}
 
 	return bank
@@ -165,7 +158,7 @@ func main() {
 
 	r := gin.Default()
 	//
-	var bank Bank
+	var bank bank
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK,
 			"Nothing to see here.Check https://github.com/yelinaung/banks")
@@ -183,7 +176,7 @@ func main() {
 			bank = process(scrapUAB())
 			bank.Name = "UAB"
 		case "cbb":
-			bank = process(scrapCB())
+			bank = process(scrapCBB())
 			bank.Name = "CBB"
 		case "agd":
 			bank = process(scrapAGD())
@@ -199,20 +192,20 @@ func main() {
 	r.Run(":" + os.Getenv("PORT"))
 }
 
-func PanicIf(err error) {
+func panicIf(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
 
-type Bank struct {
+type bank struct {
 	Name  string               `json:"name"`
 	Base  string               `json:"base"`
 	Time  string               `json:"time"`
-	Rates []map[string]BuySell `json:"rates"`
+	Rates []map[string]buySell `json:"rates"`
 }
 
-type AGD struct {
+type agd struct {
 	ExchangeRates []struct {
 		From string  `json:"From"`
 		To   string  `json:"To"`
@@ -220,7 +213,7 @@ type AGD struct {
 	} `json:"ExchangeRates"`
 }
 
-type BuySell struct {
+type buySell struct {
 	Buy  string `json:"buy"`
 	Sell string `json:"sell"`
 }
