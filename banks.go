@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/gin-gonic/gin"
-	"os"
+	_ "github.com/mattn/go-sqlite3"
+	"database/sql"
+	"fmt"
 )
 
 var (
@@ -134,8 +135,8 @@ func scrapMAB() []string {
 	return tmp
 }
 
-func process(tmp []string) bank {
-	bank := bank{}
+func process(tmp []string) Bank {
+	bank := new(Bank)
 
 	bank.Base = "MMK"
 	bank.Time = time.Now().String()
@@ -152,44 +153,94 @@ func process(tmp []string) bank {
 	return bank
 }
 
+func scrapJob(bank Bank, bankName string) {
+
+	db, err := sql.Open("sqlite3", "./banks.db")
+	panicIf(err)
+
+	tx, err := db.Begin()
+	panicIf(err)
+
+	// We are going to store the rates as json string
+	rate, e := json.Marshal(bank.Rates)
+	panicIf(e)
+
+	fmt.Println("rate string", string(rate))
+
+	sqlStmt := fmt.Sprintf(
+		"INSERT INTO banks(name, base, time, rates) VALUES ('%s', '%s', '%s', '%s')",
+		bank.Name, bank.Base, bank.Time, rate)
+	stmt, err := tx.Prepare(sqlStmt)
+	panicIf(e)
+
+	defer stmt.Close()
+	_, err = stmt.Exec()
+	panicIf(err)
+
+	tx.Commit()
+}
+
 func main() {
+
+	scrapJob(process(scrapKBZ()))
 
 	//fmt.Println("UAB ", scrapUAB())
 
-	r := gin.Default()
+	//r := gin.Default()
 	//
-	var bank bank
-	r.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK,
-			"Nothing to see here.Check https://github.com/yelinaung/banks")
-	})
-	r.GET("/:bank", func(c *gin.Context) {
-		bankName := c.Params.ByName("bank")
-		switch bankName {
-		case "kbz":
-			bank = process(scrapKBZ())
-			bank.Name = "KBZ"
-		case "mab":
-			bank = process(scrapMAB())
-			bank.Name = "MAB"
-		case "uab":
-			bank = process(scrapUAB())
-			bank.Name = "UAB"
-		case "cbb":
-			bank = process(scrapCBB())
-			bank.Name = "CBB"
-		case "agd":
-			bank = process(scrapAGD())
-			bank.Name = "AGD"
-		case "aya":
-			bank = process(scrapAYA())
-			bank.Name = "AYA"
-		default:
-		// TODO	what to reply for default
-		}
-		c.JSON(http.StatusOK, bank)
-	})
-	r.Run(":" + os.Getenv("PORT"))
+	//var bank bank
+	//r.GET("/", func(c *gin.Context) {
+	//	c.String(http.StatusOK,
+	//		"Nothing to see here.Check https://github.com/yelinaung/banks")
+	//})
+	//
+	//r.GET("/:bank", func(c *gin.Context) {
+	//	bankName := c.Params.ByName("bank")
+	//	switch bankName {
+	//	case "kbz":
+	//		bank = process(scrapKBZ())
+	//		bank.Name = "KBZ"
+	//	case "mab":
+	//		bank = process(scrapMAB())
+	//		bank.Name = "MAB"
+	//	case "uab":
+	//		bank = process(scrapUAB())
+	//		bank.Name = "UAB"
+	//	case "cbb":
+	//		bank = process(scrapCBB())
+	//		bank.Name = "CBB"
+	//	case "agd":
+	//		bank = process(scrapAGD())
+	//		bank.Name = "AGD"
+	//	case "aya":
+	//		bank = process(scrapAYA())
+	//		bank.Name = "AYA"
+	//	default:
+	//	// TODO	what to reply for default
+	//	}
+	//	c.JSON(http.StatusOK, bank)
+	//})
+	//r.Run(":" + os.Getenv("PORT"))
+}
+
+func init() {
+	db, err := sql.Open("sqlite3", "./banks.db")
+	panicIf(err)
+	defer db.Close()
+
+	sqlStmt := `
+		CREATE TABLE IF NOT EXISTS banks(
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT,
+		base TEXT,
+		time TEXT,
+		rates TEXT);
+		`
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		fmt.Printf("%q: %s\n", err, sqlStmt)
+		return
+	}
 }
 
 func panicIf(err error) {
@@ -198,7 +249,8 @@ func panicIf(err error) {
 	}
 }
 
-type bank struct {
+// Bank struct
+type Bank struct {
 	Name  string               `json:"name"`
 	Base  string               `json:"base"`
 	Time  string               `json:"time"`
