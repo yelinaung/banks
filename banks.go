@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	kbzURL = "http://www.kbzbank.com"
+	kbzURL = "https://www.kbzbank.com"
 	cbbURL = "http://www.cbbank.com.mm/exchange_rate.aspx"
 	ayaURL = "http://ayabank.com"
 	mabURL = "http://www.mabbank.com"
@@ -22,7 +22,7 @@ var (
 	agdURL = "https://ibanking.agdbank.com.mm/RateInfo?id=ALFKI&callback=?"
 )
 
-func scrapKBZ() []string {
+func scrapKBZ() ([]string, error) {
 	tmp := []string{}
 
 	// Using with file
@@ -32,43 +32,45 @@ func scrapKBZ() []string {
 	// doc, err := goquery.NewDocument(agd)
 
 	doc, err := goquery.NewDocument(kbzURL)
-	panicIf(err)
+	//panicIf(err)
 
-	doc.Find(".answer tbody tr").Each(func(i int, s *goquery.Selection) {
-		s.Find("td").Each(func(u int, t *goquery.Selection) {
-			tmp = append(tmp, str.TrimSpace(t.Text()))
+	if err == nil {
+		doc.Find(".answer tbody tr").Each(func(i int, s *goquery.Selection) {
+			s.Find("td").Each(func(u int, t *goquery.Selection) {
+				tmp = append(tmp, str.TrimSpace(t.Text()))
+			})
 		})
-	})
+	}
 
-	return tmp
+	return tmp, err
 }
 
-func scrapUAB() []string {
+func scrapUAB() ([]string, error) {
 	tmp := []string{}
 	//f, err := os.Open("")
 	//PanicIf(err)
 	//defer f.Close();
 	//doc, err := goquery.NewDocumentFromReader(f)
 	doc, err := goquery.NewDocument(uabURL)
-	panicIf(err)
+	//panicIf(err)
 
 	doc.Find(".ex_rate .ex_body").Slice(1, 4).Each(func(i int, s *goquery.Selection) {
 		s.Find("ul li").Each(func(u int, t *goquery.Selection) {
 			tmp = append(tmp, str.TrimSpace(t.Text()))
 		})
 	})
-	return tmp
+	return tmp, err
 }
 
-func scrapAGD() []string {
+func scrapAGD() ([]string, error) {
 	tmp := []string{}
 
-	response, err := http.Get(agdURL)
-	panicIf(err)
+	response, err1 := http.Get(agdURL)
+	//panicIf(err)
 	defer response.Body.Close()
 
-	contents, err := ioutil.ReadAll(response.Body)
-	panicIf(err)
+	contents, err2 := ioutil.ReadAll(response.Body)
+	panicIf(err2)
 
 	// contents has extra characters which causes
 	// invalid json structure
@@ -91,10 +93,10 @@ func scrapAGD() []string {
 	tmp = append(tmp, floatToString(a.ExchangeRates[5].Rate))
 	tmp = append(tmp, floatToString(a.ExchangeRates[4].Rate))
 
-	return tmp
+	return tmp, err1
 }
 
-func scrapCBB() []string {
+func scrapCBB() ([]string, error) {
 	tmp := []string{}
 
 	doc, err := goquery.NewDocument(cbbURL)
@@ -104,26 +106,26 @@ func scrapCBB() []string {
 		tmp = append(tmp, str.TrimSpace(s.Text()))
 	})
 
-	return tmp
+	return tmp, err
 }
 
-func scrapAYA() []string {
+func scrapAYA() ([]string, error) {
 	tmp := []string{}
 
 	doc, err := goquery.NewDocument(ayaURL)
-	panicIf(err)
+	//panicIf(err)
 
 	doc.Find("#tablepress-2 tr").Slice(1, 4).Find("td").Each(func(i int, s *goquery.Selection) {
 		tmp = append(tmp, str.TrimSpace(s.Text()))
 	})
 
-	return tmp
+	return tmp, err
 }
 
-func scrapMAB() []string {
+func scrapMAB() ([]string, error) {
 	tmp := []string{}
 	doc, err := goquery.NewDocument(mabURL)
-	panicIf(err)
+	//panicIf(err)
 
 	doc.Find("#block-block-5 tbody tr").Slice(1, 4).Each(func(i int, s *goquery.Selection) {
 		s.Find("td").Each(func(u int, t *goquery.Selection) {
@@ -131,25 +133,27 @@ func scrapMAB() []string {
 		})
 	})
 
-	return tmp
+	return tmp, err
 }
 
-func process(tmp []string) bank {
-	bank := bank{}
+func process(tmp []string, err error) (*bank, error) {
+	bank := new(bank)
 
 	bank.Base = "MMK"
 	bank.Time = time.Now().String()
 
-	currencies := []string{tmp[0], tmp[3], tmp[6]}
-	buy := []string{tmp[1], tmp[4], tmp[7]}
-	sell := []string{tmp[2], tmp[5], tmp[8]}
+	if len(tmp) > 0 {
+		currencies := []string{tmp[0], tmp[3], tmp[6]}
+		buy := []string{tmp[1], tmp[4], tmp[7]}
+		sell := []string{tmp[2], tmp[5], tmp[8]}
 
-	for x := range currencies {
-		bank.Rates = append(bank.Rates, map[string]buySell{
-			currencies[x]: buySell{buy[x], sell[x]}})
+		for x := range currencies {
+			bank.Rates = append(bank.Rates, map[string]buySell{
+				currencies[x]: buySell{buy[x], sell[x]}})
+		}
 	}
 
-	return bank
+	return bank, err
 }
 
 func main() {
@@ -157,37 +161,49 @@ func main() {
 	//fmt.Println("UAB ", scrapUAB())
 
 	r := gin.Default()
-	//
-	var bank bank
+
+	bank := new(bank)
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK,
 			"Nothing to see here.Check https://github.com/yelinaung/banks")
 	})
+
+	var err error
+
 	r.GET("/:bank", func(c *gin.Context) {
 		bankName := c.Params.ByName("bank")
 		switch bankName {
 		case "kbz":
-			bank = process(scrapKBZ())
+			bank, err = process(scrapKBZ())
 			bank.Name = "KBZ"
 		case "mab":
-			bank = process(scrapMAB())
+			bank, err = process(scrapMAB())
 			bank.Name = "MAB"
 		case "uab":
-			bank = process(scrapUAB())
+			bank, err = process(scrapUAB())
 			bank.Name = "UAB"
 		case "cbb":
-			bank = process(scrapCBB())
+			bank, err = process(scrapCBB())
 			bank.Name = "CBB"
 		case "agd":
-			bank = process(scrapAGD())
+			bank, err = process(scrapAGD())
 			bank.Name = "AGD"
 		case "aya":
-			bank = process(scrapAYA())
+			bank, err = process(scrapAYA())
 			bank.Name = "AYA"
 		default:
 		// TODO	what to reply for default
 		}
-		c.JSON(http.StatusOK, bank)
+
+		if err == nil {
+			c.JSON(http.StatusOK, bank)
+		} else {
+			c.JSON(http.StatusInternalServerError,
+				gin.H{
+					"message": "Something went wrong!",
+				})
+		}
+
 	})
 	r.Run(":" + os.Getenv("PORT"))
 }
