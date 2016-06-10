@@ -11,6 +11,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
 	"os"
+	"crypto/tls"
+	"io"
 )
 
 var (
@@ -25,14 +27,28 @@ var (
 func scrapKBZ() ([]string, error) {
 	tmp := []string{}
 
-	// Using with file
-	// f, err := os.Open("agd.html")
-	// PanicIf(err)
-	// defer f.Close()
-	// doc, err := goquery.NewDocument(agd)
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
 
-	doc, err := goquery.NewDocument(kbzURL)
-	//panicIf(err)
+	fileName := "kbz"
+
+	if _, err := os.Stat(fileName); os.IsNotExist(err) {
+		output, _ := os.Create(fileName)
+		defer output.Close()
+		response, _ := client.Get(kbzURL)
+		defer response.Body.Close()
+
+		io.Copy(output, response.Body)
+	}
+
+	f, err := os.Open(fileName)
+	panicIf(err)
+
+	defer f.Close()
+	doc, err := goquery.NewDocumentFromReader(f)
+	panicIf(err)
 
 	if err == nil {
 		doc.Find(".answer tbody tr").Each(func(i int, s *goquery.Selection) {
