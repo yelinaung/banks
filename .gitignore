@@ -2,3 +2,5 @@
 *.html
 gin-bin
 kbz
+banks
+rethinkdb_data
