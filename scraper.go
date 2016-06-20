@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"io"
 	"io/ioutil"
@@ -11,7 +12,6 @@ import (
 	"strconv"
 	str "strings"
 	"time"
-	"fmt"
 
 	r "github.com/dancannon/gorethink"
 	"log"
@@ -71,7 +71,7 @@ func Run() {
 	response, err := r.Table(TABLE_NAME).Insert(kbzData).RunWrite(s)
 	panicIf(err)
 
-	fmt.Printf("%d row inserted\n", response.Inserted)
+	fmt.Printf("%d row inserted\n for %s", response.Inserted, kbzData.BankName)
 
 	//
 	//var uabData currency
@@ -251,10 +251,10 @@ type currency struct {
 }
 
 type bank struct {
-	Name  string               `json:"name"`
-	Base  string               `json:"base"`
-	Time  string               `json:"time"`
-	Rates []map[string]buySell `json:"rates"`
+	Name  string               `json:"name" gorethink:"name"`
+	Base  string               `json:"base" gorethink:"base"`
+	Time  string               `json:"time" gorethink:"time"`
+	Rates []map[string]buySell `json:"rates" gorethink:"rates"`
 }
 
 type agd struct {
@@ -266,8 +266,8 @@ type agd struct {
 }
 
 type buySell struct {
-	Buy  string `json:"buy"`
-	Sell string `json:"sell"`
+	Buy  string `json:"buy" gorethink:"buy"`
+	Sell string `json:"sell" gorethink:"sell"`
 }
 
 func printStr(v string) {
