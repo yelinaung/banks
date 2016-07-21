@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -13,8 +12,11 @@ import (
 	str "strings"
 	"time"
 
-	r "github.com/dancannon/gorethink"
+	"github.com/PuerkitoBio/goquery"
+
 	"log"
+
+	r "github.com/dancannon/gorethink"
 )
 
 var s *r.Session
@@ -61,7 +63,7 @@ func Run() {
 	initDb()
 
 	fmt.Println("Running...")
-	kbzData := new(currency)
+	var kbzData currency
 
 	// Need to remove file before extracting dat
 	os.Remove("kbz")
@@ -73,20 +75,34 @@ func Run() {
 
 	fmt.Printf("%d row inserted\n for %s", response.Inserted, kbzData.BankName)
 
-	//
-	//var uabData currency
-	//
-	//uabData.Time = time.Now().String()
-	//uabData.BankName = "uab"
-	//uabData.Bank, _ = process(scrapUAB())
-	//
-	//uabResult, err := r.Table(TABLE_NAME).Insert(uabData).RunWrite(s)
-	//
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//
-	//fmt.Printf("UAB result %s\n", uabResult.GeneratedKeys[0])
+	var uabData currency
+
+	uabData.Time = time.Now().String()
+	uabData.BankName = "uab"
+	uabData.Bank, _ = process(scrapUAB())
+
+	uabResult, err := r.Table(TABLE_NAME).Insert(uabData).RunWrite(s)
+	printLog(err, "UAB", uabResult.GeneratedKeys[0])
+
+	var agdData currency
+	agdData.Time = time.Now().String()
+	agdData.BankName = "uab"
+	agdData.Bank, _ = process(scrapAGD())
+
+	agdResult, err := writeToDb(agdData)
+	printLog(err, "AGD", agdResult.GeneratedKeys[0])
+}
+
+func printLog(err error, bankName string, result string) {
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Printf("%s result %s\n", bankName, result)
+}
+
+func writeToDb(data currency) (r.WriteResponse, error) {
+	return r.Table(TABLE_NAME).Insert(data).RunWrite(s)
 }
 
 func scrapKBZ() ([]string, error) {
