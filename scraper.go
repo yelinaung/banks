@@ -58,22 +58,41 @@ func initDb() {
 	s = session
 }
 
-func Run() {
+func UUID() (string, error) {
+	// Create a new unique ID.
+	r, err := r.UUID().Run(s)
+	if err != nil {
+		return "", fmt.Errorf("failed to obtain a new unique ID: %v", err)
+	}
 
+	// Get the value.
+	var id string
+	err = r.One(&id)
+	if err != nil {
+		return "", fmt.Errorf("failed to obtain a new unique ID: %v", err)
+	}
+
+	if len(id) == 0 {
+		return "", fmt.Errorf("failed to obtain a new unique ID: %v", err)
+	}
+
+	return id, nil
+}
+
+func Run() {
 	initDb()
 
 	fmt.Println("Running...")
-	var kbzData currency
+	kbzData := new(currency)
 
 	// Need to remove file before extracting dat
 	os.Remove("kbz")
+	kbzData.Id, _ = UUID()
 	kbzData.Time = time.Now().String()
 	kbzData.BankName = "kbz"
 	kbzData.Bank, _ = process(scrapKBZ())
-	response, err := r.Table(TABLE_NAME).Insert(kbzData).RunWrite(s)
-	panicIf(err)
-
-	fmt.Printf("%d row inserted\n for %s", response.Inserted, kbzData.BankName)
+	kbzResult, err := r.Table(TABLE_NAME).Insert(kbzData).RunWrite(s)
+	printLog(err, "KBZ", kbzResult)
 
 	var uabData currency
 
@@ -81,8 +100,8 @@ func Run() {
 	uabData.BankName = "uab"
 	uabData.Bank, _ = process(scrapUAB())
 
-	uabResult, err := r.Table(TABLE_NAME).Insert(uabData).RunWrite(s)
-	printLog(err, "UAB", uabResult.GeneratedKeys[0])
+	uabResult, err := writeToDb(uabData)
+	printLog(err, "UAB", uabResult)
 
 	var agdData currency
 	agdData.Time = time.Now().String()
@@ -90,15 +109,39 @@ func Run() {
 	agdData.Bank, _ = process(scrapAGD())
 
 	agdResult, err := writeToDb(agdData)
-	printLog(err, "AGD", agdResult.GeneratedKeys[0])
+	printLog(err, "AGD", agdResult)
+
+	var cbbData currency
+	cbbData.Time = time.Now().String()
+	cbbData.BankName = "cbb"
+	cbbData.Bank, _ = process(scrapAGD())
+
+	cbbResult, err := writeToDb(cbbData)
+	printLog(err, "CBB", cbbResult)
+
+	var ayaData currency
+	ayaData.Time = time.Now().String()
+	ayaData.BankName = "aya"
+	ayaData.Bank, _ = process(scrapAYA())
+
+	ayaResult, err := writeToDb(ayaData)
+	printLog(err, "AYA", ayaResult)
+
+	var mabData currency
+	mabData.Time = time.Now().String()
+	mabData.BankName = "mab"
+	mabData.Bank, _ = process(scrapMAB())
+
+	mabResult, err := writeToDb(mabData)
+	printLog(err, "MAB", mabResult)
 }
 
-func printLog(err error, bankName string, result string) {
+func printLog(err error, bankName string, response r.WriteResponse) {
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	fmt.Printf("%s result %s\n", bankName, result)
+	fmt.Printf("%d inserted for %s bank \n", response.Inserted, bankName)
 }
 
 func writeToDb(data currency) (r.WriteResponse, error) {
