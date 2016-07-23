@@ -87,7 +87,10 @@ func Run() {
 
 	// Need to remove file before extracting dat
 	os.Remove("kbz")
-	kbzData.Id, _ = UUID()
+	id, err := UUID()
+	panicIf(err)
+
+	kbzData.Id = id
 	kbzData.Time = time.Now().String()
 	kbzData.BankName = "kbz"
 	kbzData.Bank, _ = process(scrapKBZ())
@@ -96,6 +99,10 @@ func Run() {
 
 	var uabData currency
 
+	uabId, err := UUID()
+	panicIf(err)
+
+	uabData.Id = uabId
 	uabData.Time = time.Now().String()
 	uabData.BankName = "uab"
 	uabData.Bank, _ = process(scrapUAB())
@@ -104,6 +111,10 @@ func Run() {
 	printLog(err, "UAB", uabResult)
 
 	var agdData currency
+	agdId, err := UUID()
+	panicIf(err)
+
+	agdData.Id = agdId
 	agdData.Time = time.Now().String()
 	agdData.BankName = "uab"
 	agdData.Bank, _ = process(scrapAGD())
@@ -112,6 +123,9 @@ func Run() {
 	printLog(err, "AGD", agdResult)
 
 	var cbbData currency
+
+	cbbId, err := UUID()
+	cbbData.Id = cbbId
 	cbbData.Time = time.Now().String()
 	cbbData.BankName = "cbb"
 	cbbData.Bank, _ = process(scrapAGD())
@@ -120,6 +134,8 @@ func Run() {
 	printLog(err, "CBB", cbbResult)
 
 	var ayaData currency
+	ayaId, err := UUID()
+	ayaData.Id = ayaId
 	ayaData.Time = time.Now().String()
 	ayaData.BankName = "aya"
 	ayaData.Bank, _ = process(scrapAYA())
@@ -128,6 +144,8 @@ func Run() {
 	printLog(err, "AYA", ayaResult)
 
 	var mabData currency
+	mabId, err := UUID()
+	mabData.Id = mabId
 	mabData.Time = time.Now().String()
 	mabData.BankName = "mab"
 	mabData.Bank, _ = process(scrapMAB())
@@ -148,7 +166,7 @@ func writeToDb(data currency) (r.WriteResponse, error) {
 	return r.Table(TABLE_NAME).Insert(data).RunWrite(s)
 }
 
-func scrapKBZ() ([]string, error) {
+func scrapKBZ() (string, []string, error) {
 	tmp := []string{}
 
 	tr := &http.Transport{
@@ -182,10 +200,10 @@ func scrapKBZ() ([]string, error) {
 		})
 	}
 
-	return tmp, err
+	return "KBZ", tmp, err
 }
 
-func scrapUAB() ([]string, error) {
+func scrapUAB() (string, []string, error) {
 	tmp := []string{}
 	doc, err := goquery.NewDocument(uabURL)
 
@@ -194,10 +212,10 @@ func scrapUAB() ([]string, error) {
 			tmp = append(tmp, str.TrimSpace(t.Text()))
 		})
 	})
-	return tmp, err
+	return "UAB", tmp, err
 }
 
-func scrapAGD() ([]string, error) {
+func scrapAGD() (string, []string, error) {
 	tmp := []string{}
 
 	response, err1 := http.Get(agdURL)
@@ -228,10 +246,10 @@ func scrapAGD() ([]string, error) {
 	tmp = append(tmp, floatToString(a.ExchangeRates[5].Rate))
 	tmp = append(tmp, floatToString(a.ExchangeRates[4].Rate))
 
-	return tmp, err1
+	return "AGD", tmp, err1
 }
 
-func scrapCBB() ([]string, error) {
+func scrapCBB() (string, []string, error) {
 	tmp := []string{}
 
 	doc, err := goquery.NewDocument(cbbURL)
@@ -241,10 +259,10 @@ func scrapCBB() ([]string, error) {
 		tmp = append(tmp, str.TrimSpace(s.Text()))
 	})
 
-	return tmp, err
+	return "CBB", tmp, err
 }
 
-func scrapAYA() ([]string, error) {
+func scrapAYA() (string, []string, error) {
 	tmp := []string{}
 
 	doc, err := goquery.NewDocument(ayaURL)
@@ -254,10 +272,10 @@ func scrapAYA() ([]string, error) {
 		tmp = append(tmp, str.TrimSpace(s.Text()))
 	})
 
-	return tmp, err
+	return "AYA", tmp, err
 }
 
-func scrapMAB() ([]string, error) {
+func scrapMAB() (string, []string, error) {
 	tmp := []string{}
 	doc, err := goquery.NewDocument(mabURL)
 	//panicIf(err)
@@ -268,12 +286,13 @@ func scrapMAB() ([]string, error) {
 		})
 	})
 
-	return tmp, err
+	return "MAB", tmp, err
 }
 
-func process(tmp []string, err error) (*bank, error) {
+func process(bankName string, tmp []string, err error) (*bank, error) {
 	bank := new(bank)
 
+	bank.Name = bankName
 	bank.Base = "MMK"
 	bank.Time = time.Now().String()
 
