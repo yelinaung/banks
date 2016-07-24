@@ -33,6 +33,13 @@ var (
 	mabURL = "http://www.mabbank.com"
 	uabURL = "http://www.unitedamarabank.com"
 	agdURL = "https://ibanking.agdbank.com.mm/RateInfo?id=ALFKI&callback=?"
+
+	KBZ = "KBZ"
+	CBB = "CBB"
+	AYA = "AYA"
+	MAB = "MAB"
+	UAB = "UAB"
+	AGD = "AGD"
 )
 
 func initDb() {
@@ -84,75 +91,75 @@ func Run() {
 	initDb()
 
 	fmt.Println("Running...")
+
+	// KBZ
 	kbzData := new(currency)
 
 	// Need to remove file before extracting dat
 	os.Remove("kbz")
 	id, err := UUID()
 	panicIf(err)
-
 	kbzData.Id = id
 	kbzData.Time = time.Now().String()
-	kbzData.BankName = "kbz"
+	kbzData.BankName = KBZ
 	kbzData.Bank, _ = process(scrapKBZ())
 	kbzResult, err := r.Table(TABLE_NAME).Insert(kbzData).RunWrite(s)
-	printLog(err, "KBZ", kbzResult)
+	printLog(err, KBZ, kbzResult)
 
+	// UAB
 	var uabData currency
-
 	uabId, err := UUID()
 	panicIf(err)
-
 	uabData.Id = uabId
 	uabData.Time = time.Now().String()
-	uabData.BankName = "uab"
+	uabData.BankName = UAB
 	uabData.Bank, _ = process(scrapUAB())
-
 	uabResult, err := writeToDb(uabData)
-	printLog(err, "UAB", uabResult)
+	printLog(err, UAB, uabResult)
 
+	// AGD Bank
 	var agdData currency
 	agdId, err := UUID()
 	panicIf(err)
 
 	agdData.Id = agdId
 	agdData.Time = time.Now().String()
-	agdData.BankName = "uab"
+	agdData.BankName = AGD
 	agdData.Bank, _ = process(scrapAGD())
-
 	agdResult, err := writeToDb(agdData)
-	printLog(err, "AGD", agdResult)
+	printLog(err, AGD, agdResult)
 
+	// CBB
 	var cbbData currency
-
 	cbbId, err := UUID()
 	cbbData.Id = cbbId
 	cbbData.Time = time.Now().String()
-	cbbData.BankName = "cbb"
-	cbbData.Bank, _ = process(scrapAGD())
+	cbbData.BankName = CBB
+	cbbData.Bank, _ = process(scrapCBB())
 
 	cbbResult, err := writeToDb(cbbData)
-	printLog(err, "CBB", cbbResult)
+	printLog(err, CBB, cbbResult)
 
+	// AYA
 	var ayaData currency
 	ayaId, err := UUID()
 	ayaData.Id = ayaId
 	ayaData.Time = time.Now().String()
-	ayaData.BankName = "aya"
+	ayaData.BankName = AYA
 	ayaData.Bank, _ = process(scrapAYA())
-
 	ayaResult, err := writeToDb(ayaData)
-	printLog(err, "AYA", ayaResult)
+	printLog(err, AYA, ayaResult)
 
+	// MAB
 	var mabData currency
 	mabId, err := UUID()
 	mabData.Id = mabId
 	mabData.Time = time.Now().String()
-	mabData.BankName = "mab"
+	mabData.BankName = MAB
 	mabData.Bank, _ = process(scrapMAB())
 
 	mabResult, err := writeToDb(mabData)
-	printLog(err, "MAB", mabResult)
+	printLog(err, MAB, mabResult)
 }
 
 func printLog(err error, bankName string, response r.WriteResponse) {
