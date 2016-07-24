@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	str "strings"
 	"time"
@@ -266,10 +267,14 @@ func scrapAYA() (string, []string, error) {
 	tmp := []string{}
 
 	doc, err := goquery.NewDocument(ayaURL)
-	//panicIf(err)
 
+	r, _ := regexp.Compile(`\D`)
 	doc.Find("#tablepress-2 tr").Slice(1, 4).Find("td").Each(func(i int, s *goquery.Selection) {
-		tmp = append(tmp, str.TrimSpace(s.Text()))
+		sText := s.Text()
+		if str.Contains(sText, "/") {
+			tmp = append(tmp, str.TrimSpace(r.ReplaceAllLiteralString(sText, "")))
+		}
+		tmp = append(tmp, str.TrimSpace(sText))
 	})
 
 	return "AYA", tmp, err
