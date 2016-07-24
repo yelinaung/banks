@@ -251,8 +251,11 @@ func scrapAGD() (string, []string, error) {
 	tmp = append(tmp, floatToString(a.ExchangeRates[3].Rate))
 	tmp = append(tmp, floatToString(a.ExchangeRates[2].Rate))
 	tmp = append(tmp, "USD")
-	tmp = append(tmp, floatToString(a.ExchangeRates[5].Rate))
-	tmp = append(tmp, floatToString(a.ExchangeRates[4].Rate))
+	// They added Thai bhatt .. hmm mm
+	// tmp = append(tmp, floatToString(a.ExchangeRates[5].Rate))
+	// tmp = append(tmp, floatToString(a.ExchangeRates[4].Rate))
+	tmp = append(tmp, floatToString(a.ExchangeRates[7].Rate))
+	tmp = append(tmp, floatToString(a.ExchangeRates[6].Rate))
 
 	return "AGD", tmp, err1
 }
