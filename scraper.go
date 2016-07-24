@@ -175,7 +175,7 @@ func writeToDb(data currency) (r.WriteResponse, error) {
 }
 
 func scrapKBZ() (string, []string, error) {
-	tmp := []string{}
+	tmp := [][]string{}
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -201,14 +201,15 @@ func scrapKBZ() (string, []string, error) {
 	panicIf(err)
 
 	if err == nil {
-		doc.Find(".answer tbody tr").Each(func(i int, s *goquery.Selection) {
-			s.Find("td").Each(func(u int, t *goquery.Selection) {
-				tmp = append(tmp, str.TrimSpace(t.Text()))
+		doc.Find(".exchange-rate div").Each(func(i int, s *goquery.Selection) {
+			s.Find(".col-lg-2").Each(func(j int, t *goquery.Selection) {
+				x := str.TrimSpace(t.After("strong").Text())
+				tmp = append(tmp, str.Split(x, " "))
 			})
 		})
 	}
 
-	return "KBZ", tmp, err
+	return "KBZ", flattern(tmp), err
 }
 
 func scrapUAB() (string, []string, error) {
@@ -334,6 +335,20 @@ func panicIf(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func flattern(input [][]string) []string {
+	tmp := []string{}
+	for i := 0; i < len(input); i++ {
+		x := input[i]
+		for j := 0; j < len(x); j++ {
+			if len(x[j]) != 0 {
+				tmp = append(tmp, x[j])
+			}
+		}
+	}
+
+	return tmp
 }
 
 type currency struct {
