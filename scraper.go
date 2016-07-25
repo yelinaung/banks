@@ -15,15 +15,10 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"log"
-
 	r "github.com/dancannon/gorethink"
 )
 
-var s *r.Session
-
-var DB_NAME = "currency_test"
-var TABLE_NAME = "currency"
+var dbName = "test"
 
 // Bank Urls
 var (
@@ -42,31 +37,7 @@ var (
 	AGD = "AGD"
 )
 
-func initDb() {
-	var session *r.Session
-
-	session, err := r.Connect(r.ConnectOpts{
-		Address: "localhost:28015",
-	})
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
-
-	session.SetMaxOpenConns(5)
-
-	r.TableDrop(TABLE_NAME).Run(session)
-
-	resp, err := r.TableCreate(TABLE_NAME).RunWrite(session)
-	if err != nil {
-		log.Println(err)
-	}
-
-	fmt.Printf("%d table created\n", resp.TablesCreated)
-
-	s = session
-}
-
-func UUID() (string, error) {
+func generateID() (string, error) {
 	// Create a new unique ID.
 	r, err := r.UUID().Run(s)
 	if err != nil {
@@ -88,29 +59,28 @@ func UUID() (string, error) {
 }
 
 func Run() {
-	initDb()
 
 	fmt.Println("Running...")
 
 	// KBZ
-	kbzData := new(currency)
+	kbzData := new(Currency)
 
 	// Need to remove file before extracting dat
 	os.Remove("kbz")
-	id, err := UUID()
+	id, err := generateID()
 	panicIf(err)
-	kbzData.Id = id
+	kbzData.ID = id
 	kbzData.Time = time.Now().String()
 	kbzData.BankName = KBZ
 	kbzData.Bank, _ = process(scrapKBZ())
-	kbzResult, err := r.Table(TABLE_NAME).Insert(kbzData).RunWrite(s)
+	kbzResult, err := r.Table(tableName).Insert(kbzData).RunWrite(s)
 	printLog(err, KBZ, kbzResult)
 
 	// UAB
-	var uabData currency
-	uabId, err := UUID()
+	var uabData Currency
+	uabID, err := generateID()
 	panicIf(err)
-	uabData.Id = uabId
+	uabData.ID = uabID
 	uabData.Time = time.Now().String()
 	uabData.BankName = UAB
 	uabData.Bank, _ = process(scrapUAB())
@@ -118,11 +88,11 @@ func Run() {
 	printLog(err, UAB, uabResult)
 
 	// AGD Bank
-	var agdData currency
-	agdId, err := UUID()
+	var agdData Currency
+	agdID, err := generateID()
 	panicIf(err)
 
-	agdData.Id = agdId
+	agdData.ID = agdID
 	agdData.Time = time.Now().String()
 	agdData.BankName = AGD
 	agdData.Bank, _ = process(scrapAGD())
@@ -130,9 +100,9 @@ func Run() {
 	printLog(err, AGD, agdResult)
 
 	// CBB
-	var cbbData currency
-	cbbId, err := UUID()
-	cbbData.Id = cbbId
+	var cbbData Currency
+	cbbID, err := generateID()
+	cbbData.ID = cbbID
 	cbbData.Time = time.Now().String()
 	cbbData.BankName = CBB
 	cbbData.Bank, _ = process(scrapCBB())
@@ -141,9 +111,9 @@ func Run() {
 	printLog(err, CBB, cbbResult)
 
 	// AYA
-	var ayaData currency
-	ayaId, err := UUID()
-	ayaData.Id = ayaId
+	var ayaData Currency
+	ayaID, err := generateID()
+	ayaData.ID = ayaID
 	ayaData.Time = time.Now().String()
 	ayaData.BankName = AYA
 	ayaData.Bank, _ = process(scrapAYA())
@@ -151,9 +121,9 @@ func Run() {
 	printLog(err, AYA, ayaResult)
 
 	// MAB
-	var mabData currency
-	mabId, err := UUID()
-	mabData.Id = mabId
+	var mabData Currency
+	mabID, err := generateID()
+	mabData.ID = mabID
 	mabData.Time = time.Now().String()
 	mabData.BankName = MAB
 	mabData.Bank, _ = process(scrapMAB())
@@ -170,8 +140,8 @@ func printLog(err error, bankName string, response r.WriteResponse) {
 	fmt.Printf("%d inserted for %s bank \n", response.Inserted, bankName)
 }
 
-func writeToDb(data currency) (r.WriteResponse, error) {
-	return r.Table(TABLE_NAME).Insert(data).RunWrite(s)
+func writeToDb(data Currency) (r.WriteResponse, error) {
+	return r.Table(tableName).Insert(data).RunWrite(s)
 }
 
 func scrapKBZ() (string, []string, error) {
@@ -351,8 +321,8 @@ func flattern(input [][]string) []string {
 	return tmp
 }
 
-type currency struct {
-	Id       string `gorethink:"id"`
+type Currency struct {
+	ID       string `gorethink:"id"`
 	Time     string `gorethink:"time"`
 	BankName string `gorethink:"name"`
 	Bank     *bank  `gorethink:"data"`
