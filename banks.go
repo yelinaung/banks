@@ -1,12 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
 
 	r "github.com/dancannon/gorethink"
-	//	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
+var dbName = "test"
 var tableName = "currency"
 var s *r.Session
 
@@ -42,69 +46,95 @@ func main() {
 	//})
 	//c.Start()
 
-	// r := gin.New()
 	//
 	// r.GET("/", func(c *gin.Context) {
 	// 	c.String(http.StatusOK,
 	// 		"Nothing to see here.Check https://github.com/yelinaung/banks")
 	// })
+	//
 
-	//var err error
+	r := gin.New()
+	r.GET("/run", func(c *gin.Context) {
+		Run()
+	})
 
-	r.GET("/:bank", func(c *gin.Context) {
-		bankName := c.Params.ByName("bank")
-		switch bankName {
-		case "kbz":
-			bank, err = process(scrapKBZ())
-			bank.Name = "KBZ"
-		case "mab":
-			bank, err = process(scrapMAB())
-			bank.Name = "MAB"
-		case "uab":
-			bank, err = process(scrapUAB())
-			bank.Name = "UAB"
-		case "cbb":
-			bank, err = process(scrapCBB())
-			bank.Name = "CBB"
-		case "agd":
-			bank, err = process(scrapAGD())
-			bank.Name = "AGD"
-		case "aya":
-			bank, err = process(scrapAYA())
-			bank.Name = "AYA"
-		default:
-			// TODO	what to reply for default
-		}
-	
+	r.GET("/all", func(c *gin.Context) {
+		err, currencies := getAll()
+		var response Response
+		var data Data
+		data.Currencies = currencies
+		response.Data = data
 		if err == nil {
-			c.JSON(http.StatusOK, bank)
+			c.JSON(http.StatusOK, response)
 		} else {
 			c.JSON(http.StatusInternalServerError,
 				gin.H{
 					"message": "Something went wrong!",
 				})
 		}
-	
+
+	})
+
+	r.GET("/b/:bank", func(c *gin.Context) {
+		bankName := c.Params.ByName("bank")
+		err, currencies := filterByBankName(bankName)
+		var response Response
+		var data Data
+		data.Currencies = currencies
+		response.Data = data
+		if err == nil {
+			c.JSON(http.StatusOK, response)
+		} else {
+			c.JSON(http.StatusInternalServerError,
+				gin.H{
+					"message": "Something went wrong!",
+				})
+		}
+
 	})
 	r.Run(":" + os.Getenv("PORT"))
-
 }
 
-func filterByBankName(name string) {
-	query := r.Table(tableName).Filter(r.Row.Field("name").Eq(name))
+func getAll() (error, [] Currency) {
+	query := r.Table(tableName)
 	row, err := query.Run(s)
 	if err != nil {
 		fmt.Print(err)
-		return
+		return err, nil
 	}
 
 	var currencies = []Currency{}
 	err2 := row.All(&currencies)
 
 	if err2 != nil {
-		fmt.Println(err2)
-		return
+		return err2, nil
 	}
 
-	printObj(currencies)
+	_, err3 := json.Marshal(currencies)
+
+	fmt.Println("currencies ", len(currencies))
+
+	return err3, currencies
+}
+
+func filterByBankName(name string) (error, []Currency) {
+	query := r.Table(tableName).Filter(r.Row.Field("bank_name").Eq(name))
+	row, err := query.Run(s)
+	if err != nil {
+		fmt.Print(err)
+		return err, nil
+	}
+
+	var currencies = []Currency{}
+	err2 := row.All(&currencies)
+
+	if err2 != nil {
+		return err2, nil
+	}
+
+	_, err3 := json.Marshal(currencies)
+
+	fmt.Println("currencies ", len(currencies))
+
+	return err3, currencies
 }

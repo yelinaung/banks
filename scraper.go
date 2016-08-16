@@ -18,8 +18,6 @@ import (
 	r "github.com/dancannon/gorethink"
 )
 
-var dbName = "test"
-
 // Bank Urls
 var (
 	kbzURL = "https://www.kbzbank.com"
@@ -63,71 +61,41 @@ func Run() {
 	fmt.Println("Running...")
 
 	// KBZ
-	kbzData := new(Currency)
 
 	// Need to remove file before extracting dat
 	os.Remove("kbz")
-	id, err := generateID()
+	kbzData, err := process(scrapKBZ())
 	panicIf(err)
-	kbzData.ID = id
-	kbzData.Time = time.Now().String()
-	kbzData.BankName = KBZ
-	kbzData.Bank, _ = process(scrapKBZ())
-	kbzResult, err := r.Table(tableName).Insert(kbzData).RunWrite(s)
+	kbzResult, err := writeToDb(kbzData)
 	printLog(err, KBZ, kbzResult)
 
 	// UAB
-	var uabData Currency
-	uabID, err := generateID()
+	uabData, err := process(scrapUAB())
 	panicIf(err)
-	uabData.ID = uabID
-	uabData.Time = time.Now().String()
-	uabData.BankName = UAB
-	uabData.Bank, _ = process(scrapUAB())
 	uabResult, err := writeToDb(uabData)
 	printLog(err, UAB, uabResult)
 
 	// AGD Bank
-	var agdData Currency
-	agdID, err := generateID()
+	agdData, err := process(scrapAGD())
 	panicIf(err)
-
-	agdData.ID = agdID
-	agdData.Time = time.Now().String()
-	agdData.BankName = AGD
-	agdData.Bank, _ = process(scrapAGD())
 	agdResult, err := writeToDb(agdData)
 	printLog(err, AGD, agdResult)
 
 	// CBB
-	var cbbData Currency
-	cbbID, err := generateID()
-	cbbData.ID = cbbID
-	cbbData.Time = time.Now().String()
-	cbbData.BankName = CBB
-	cbbData.Bank, _ = process(scrapCBB())
-
+	cbbData, err := process(scrapCBB())
+	panicIf(err)
 	cbbResult, err := writeToDb(cbbData)
 	printLog(err, CBB, cbbResult)
 
 	// AYA
-	var ayaData Currency
-	ayaID, err := generateID()
-	ayaData.ID = ayaID
-	ayaData.Time = time.Now().String()
-	ayaData.BankName = AYA
-	ayaData.Bank, _ = process(scrapAYA())
+	ayaData, err := process(scrapAYA())
+	panicIf(err)
 	ayaResult, err := writeToDb(ayaData)
 	printLog(err, AYA, ayaResult)
 
 	// MAB
-	var mabData Currency
-	mabID, err := generateID()
-	mabData.ID = mabID
-	mabData.Time = time.Now().String()
-	mabData.BankName = MAB
-	mabData.Bank, _ = process(scrapMAB())
-
+	mabData, err := process(scrapMAB())
+	panicIf(err)
 	mabResult, err := writeToDb(mabData)
 	printLog(err, MAB, mabResult)
 }
@@ -275,9 +243,10 @@ func scrapMAB() (string, []string, error) {
 	return "MAB", tmp, err
 }
 
-func process(bankName string, tmp []string, err error) (*bank, error) {
-	bank := new(bank)
-
+func process(bankName string, tmp []string, err error) (Currency, error) {
+	bank := Currency{}
+	id, err := generateID()
+	bank.ID = id
 	bank.Name = bankName
 	bank.Base = "MMK"
 	bank.Time = time.Now().String()
@@ -289,7 +258,7 @@ func process(bankName string, tmp []string, err error) (*bank, error) {
 
 		for x := range currencies {
 			bank.Rates = append(bank.Rates, map[string]buySell{
-				currencies[x]: buySell{buy[x], sell[x]}})
+				currencies[x]: {buy[x], sell[x]}})
 		}
 	}
 
@@ -321,15 +290,17 @@ func flattern(input [][]string) []string {
 	return tmp
 }
 
-type Currency struct {
-	ID       string `gorethink:"id"`
-	Time     string `gorethink:"time"`
-	BankName string `gorethink:"name"`
-	Bank     *bank  `gorethink:"data"`
+type Response struct {
+	Data Data `json:"data"`
 }
 
-type bank struct {
-	Name  string               `json:"name" gorethink:"name"`
+type Data struct {
+	Currencies []Currency `json:"currencies"`
+}
+
+type Currency struct {
+	ID    string               `json:"id" gorethink:"id"`
+	Name  string               `json:"bank_name" gorethink:"bank_name"`
 	Base  string               `json:"base" gorethink:"base"`
 	Time  string               `json:"time" gorethink:"time"`
 	Rates []map[string]buySell `json:"rates" gorethink:"rates"`
