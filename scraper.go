@@ -58,9 +58,7 @@ func generateID() (string, error) {
 
 /***TestFunction does ...***/
 func Run() {
-
 	fmt.Println("Running...")
-
 	// KBZ
 
 	// Need to remove file before extracting dat

@@ -3,16 +3,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"os"
 
 	r "github.com/dancannon/gorethink"
-	"github.com/gin-gonic/gin"
+	"github.com/jasonlvhit/gocron"
 )
 
 var dbName = "test"
 var tableName = "currency"
 var s *r.Session
+
+// TODO Add route to get all the currencies of one bank
+// TODO Add route to get all the "latest" currencies
+// TODO Add route to get all the currencies by "date"
+// TODO Add route to get one latest currency of a bank
 
 func init() {
 	var err error
@@ -38,61 +41,54 @@ func init() {
 
 func main() {
 	fmt.Println("Starting..")
+	// Do jobs without params
+	gocron.Every(2).Minutes().Do(Run)
 
-	//c := gron.New()
-	//c.AddFunc(gron.Every(2 * time.Minute), func() {
-	//	fmt.Println("runs every two minute.")
+	<-gocron.Start()
 
+	//ginRoute := gin.New()
+	//
+	//// Base
+	//ginRoute.GET("/", func(c *gin.Context) {
+	//	c.String(http.StatusOK,
+	//		"Nothing to see here.Check https://github.com/yelinaung/banks")
 	//})
-	//c.Start()
-
 	//
-	// r.GET("/", func(c *gin.Context) {
-	// 	c.String(http.StatusOK,
-	// 		"Nothing to see here.Check https://github.com/yelinaung/banks")
-	// })
+	//ginRoute.GET("/all", func(c *gin.Context) {
+	//	currencies, err := getAll()
+	//	var response Response
+	//	var data Data
+	//	data.Currencies = currencies
+	//	response.Data = data
+	//	if err == nil {
+	//		c.JSON(http.StatusOK, response)
+	//	} else {
+	//		c.JSON(http.StatusInternalServerError,
+	//			gin.H{
+	//				"message": "Something went wrong!",
+	//			})
+	//	}
 	//
-
-	r := gin.New()
-	r.GET("/run", func(c *gin.Context) {
-		Run()
-	})
-
-	r.GET("/all", func(c *gin.Context) {
-		err, currencies := getAll()
-		var response Response
-		var data Data
-		data.Currencies = currencies
-		response.Data = data
-		if err == nil {
-			c.JSON(http.StatusOK, response)
-		} else {
-			c.JSON(http.StatusInternalServerError,
-				gin.H{
-					"message": "Something went wrong!",
-				})
-		}
-
-	})
-
-	r.GET("/b/:bank", func(c *gin.Context) {
-		bankName := c.Params.ByName("bank")
-		err, currencies := filterByBankName(bankName)
-		var response Response
-		var data Data
-		data.Currencies = currencies
-		response.Data = data
-		if err == nil {
-			c.JSON(http.StatusOK, response)
-		} else {
-			c.JSON(http.StatusInternalServerError,
-				gin.H{
-					"message": "Something went wrong!",
-				})
-		}
-
-	})
-	r.Run(":" + os.Getenv("PORT"))
+	//})
+	//
+	//ginRoute.GET("/b/:bank", func(c *gin.Context) {
+	//	bankName := c.Params.ByName("bank")
+	//	currencies, err := filterByBankName(bankName)
+	//	var response Response
+	//	var data Data
+	//	data.Currencies = currencies
+	//	response.Data = data
+	//	if err == nil {
+	//		c.JSON(http.StatusOK, response)
+	//	} else {
+	//		c.JSON(http.StatusInternalServerError,
+	//			gin.H{
+	//				"message": "Something went wrong!",
+	//			})
+	//	}
+	//
+	//})
+	//ginRoute.Run(":" + os.Getenv("PORT"))
 }
 
 func getAll() ([]Currency, error) {
@@ -100,14 +96,14 @@ func getAll() ([]Currency, error) {
 	row, err := query.Run(s)
 	if err != nil {
 		fmt.Print(err)
-		return err, nil
+		return nil, err
 	}
 
 	var currencies = []Currency{}
 	err2 := row.All(&currencies)
 
 	if err2 != nil {
-		return err2, nil
+		return nil, err2
 	}
 
 	_, err3 := json.Marshal(currencies)
@@ -122,14 +118,14 @@ func filterByBankName(name string) ([]Currency, error) {
 	row, err := query.Run(s)
 	if err != nil {
 		fmt.Print(err)
-		return err, nil
+		return nil, err
 	}
 
 	var currencies = []Currency{}
 	err2 := row.All(&currencies)
 
 	if err2 != nil {
-		return err2, nil
+		return nil, err2
 	}
 
 	_, err3 := json.Marshal(currencies)
