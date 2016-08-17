@@ -95,7 +95,7 @@ func main() {
 	r.Run(":" + os.Getenv("PORT"))
 }
 
-func getAll() (error, [] Currency) {
+func getAll() ([]Currency, error) {
 	query := r.Table(tableName)
 	row, err := query.Run(s)
 	if err != nil {
@@ -114,10 +114,10 @@ func getAll() (error, [] Currency) {
 
 	fmt.Println("currencies ", len(currencies))
 
-	return err3, currencies
+	return currencies, err3
 }
 
-func filterByBankName(name string) (error, []Currency) {
+func filterByBankName(name string) ([]Currency, error) {
 	query := r.Table(tableName).Filter(r.Row.Field("bank_name").Eq(name))
 	row, err := query.Run(s)
 	if err != nil {
@@ -136,5 +136,5 @@ func filterByBankName(name string) (error, []Currency) {
 
 	fmt.Println("currencies ", len(currencies))
 
-	return err3, currencies
+	return currencies, err3
 }

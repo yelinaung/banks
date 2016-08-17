@@ -56,6 +56,7 @@ func generateID() (string, error) {
 	return id, nil
 }
 
+/***TestFunction does ...***/
 func Run() {
 
 	fmt.Println("Running...")
@@ -190,7 +191,7 @@ func scrapAGD() (string, []string, error) {
 	tmp = append(tmp, floatToString(a.ExchangeRates[3].Rate))
 	tmp = append(tmp, floatToString(a.ExchangeRates[2].Rate))
 	tmp = append(tmp, "USD")
-	// They added Thai bhatt .. hmm mm
+	// TODO They added Thai bhatt .. hmm mm
 	// tmp = append(tmp, floatToString(a.ExchangeRates[5].Rate))
 	// tmp = append(tmp, floatToString(a.ExchangeRates[4].Rate))
 	tmp = append(tmp, floatToString(a.ExchangeRates[7].Rate))
@@ -232,7 +233,6 @@ func scrapAYA() (string, []string, error) {
 func scrapMAB() (string, []string, error) {
 	tmp := []string{}
 	doc, err := goquery.NewDocument(mabURL)
-	//panicIf(err)
 
 	doc.Find("#block-block-5 tbody tr").Slice(1, 4).Each(func(i int, s *goquery.Selection) {
 		s.Find("td").Each(func(u int, t *goquery.Selection) {
@@ -290,14 +290,20 @@ func flattern(input [][]string) []string {
 	return tmp
 }
 
+// Response type for the api
+// Doesn't include in the DB
 type Response struct {
 	Data Data `json:"data"`
 }
 
+// Type which serves as "data" for the Response
+// Doesn't include in the DB
 type Data struct {
 	Currencies []Currency `json:"currencies"`
 }
 
+// Type with all the necessary data
+// Data is stored in the DB
 type Currency struct {
 	ID    string               `json:"id" gorethink:"id"`
 	Name  string               `json:"bank_name" gorethink:"bank_name"`
