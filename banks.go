@@ -4,16 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 
+	str "strings"
 	r "github.com/dancannon/gorethink"
 	"github.com/jasonlvhit/gocron"
+	"github.com/gin-gonic/gin"
+	"net/http"
+	"os"
+	"time"
 )
 
 var dbName = "test"
 var tableName = "currency"
 var s *r.Session
 
-// TODO Add route to get all the currencies of one bank
-// TODO Add route to get all the "latest" currencies
+// DONE Add route to get all the currencies of one bank
+// DONE Add route to get all the "latest" currencies
 // TODO Add route to get all the currencies by "date"
 // TODO Add route to get one latest currency of a bank
 
@@ -44,93 +49,121 @@ func main() {
 	// Do jobs without params
 	gocron.Every(2).Minutes().Do(Run)
 
-	<-gocron.Start()
+	// Run the job
+	// <-gocron.Start()
 
-	//ginRoute := gin.New()
-	//
-	//// Base
-	//ginRoute.GET("/", func(c *gin.Context) {
-	//	c.String(http.StatusOK,
-	//		"Nothing to see here.Check https://github.com/yelinaung/banks")
-	//})
-	//
-	//ginRoute.GET("/all", func(c *gin.Context) {
-	//	currencies, err := getAll()
-	//	var response Response
-	//	var data Data
-	//	data.Currencies = currencies
-	//	response.Data = data
-	//	if err == nil {
-	//		c.JSON(http.StatusOK, response)
-	//	} else {
-	//		c.JSON(http.StatusInternalServerError,
-	//			gin.H{
-	//				"message": "Something went wrong!",
-	//			})
-	//	}
-	//
-	//})
-	//
-	//ginRoute.GET("/b/:bank", func(c *gin.Context) {
-	//	bankName := c.Params.ByName("bank")
-	//	currencies, err := filterByBankName(bankName)
-	//	var response Response
-	//	var data Data
-	//	data.Currencies = currencies
-	//	response.Data = data
-	//	if err == nil {
-	//		c.JSON(http.StatusOK, response)
-	//	} else {
-	//		c.JSON(http.StatusInternalServerError,
-	//			gin.H{
-	//				"message": "Something went wrong!",
-	//			})
-	//	}
-	//
-	//})
-	//ginRoute.Run(":" + os.Getenv("PORT"))
+	ginRoute := gin.New()
+
+	// Base
+	ginRoute.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK,
+			"Nothing to see here.Check https://github.com/yelinaung/banks")
+	})
+
+	ginRoute.GET("/all", func(c *gin.Context) {
+		currencies, err := getAll()
+		var response Response
+		var data Data
+		data.Currencies = currencies
+		response.Data = data
+		if err == nil {
+			c.JSON(http.StatusOK, response)
+		} else {
+			c.JSON(http.StatusInternalServerError,
+				gin.H{
+					"message": "Something went wrong!",
+				})
+		}
+
+	})
+
+	ginRoute.GET("/b/:bank", func(c *gin.Context) {
+		bankName := c.Params.ByName("bank")
+		currencies, err := getAllCurrenciesByBankName(bankName)
+		var response Response
+		var data Data
+		data.Currencies = currencies
+		response.Data = data
+		if err == nil {
+			c.JSON(http.StatusOK, response)
+		} else {
+			c.JSON(http.StatusInternalServerError,
+				gin.H{
+					"message": "Something went wrong!",
+				})
+		}
+
+	})
+
+	ginRoute.GET("/latest1", func(c *gin.Context) {
+		start := time.Now()
+		currencies, err := getAllLatestCurrencies()
+		var response Response
+		var data Data
+		data.Currencies = currencies
+		response.Data = data
+		if err == nil {
+			elapsed := time.Since(start)
+			fmt.Printf("latest one took %s\n", elapsed)
+			c.JSON(http.StatusOK, response)
+		} else {
+			c.JSON(http.StatusInternalServerError,
+				gin.H{
+					"message": "Something went wrong!",
+				})
+		}
+	})
+
+	ginRoute.Run(":" + os.Getenv("PORT"))
 }
 
 func getAll() ([]Currency, error) {
 	query := r.Table(tableName)
-	row, err := query.Run(s)
-	if err != nil {
-		fmt.Print(err)
-		return nil, err
-	}
-
-	var currencies = []Currency{}
-	err2 := row.All(&currencies)
-
-	if err2 != nil {
-		return nil, err2
-	}
-
-	_, err3 := json.Marshal(currencies)
-
-	fmt.Println("currencies ", len(currencies))
-
-	return currencies, err3
+	return resolveCursorToValue(query)
 }
 
-func filterByBankName(name string) ([]Currency, error) {
-	query := r.Table(tableName).Filter(r.Row.Field("bank_name").Eq(name))
-	row, err := query.Run(s)
+func getAllLatestCurrencies() ([]Currency, error) {
+	// a bit hacky way to do it
+	query := r.Table(tableName).OrderBy("time").Limit(6)
+
+	// another butt ugly way is but super slow, obviosly
+	//query := filterLatest("KBZ").
+	//	Union(filterLatest("CBB")).
+	//	Union(filterLatest("MAB")).
+	//	Union(filterLatest("AGD")).
+	//	Union(filterLatest("AYA")).
+	//	Union(filterLatest("UAB"))
+
+	return resolveCursorToValue(query)
+}
+
+func filterLatest(name string) (r.Term) {
+	return r.Table(tableName).OrderBy("time").
+		Filter(r.Row.Field("bank_name").Eq(str.ToUpper(name))).
+		Limit(1)
+}
+
+func getAllCurrenciesByBankName(name string) ([]Currency, error) {
+	query := r.Table(tableName).Filter(r.Row.Field("bank_name").Eq(str.ToUpper(name)))
+	return resolveCursorToValue(query)
+}
+
+func resolveCursorToValue(t r.Term) ([]Currency, error) {
+	var currencies = []Currency{}
+
+	row, err := t.Run(s)
 	if err != nil {
 		fmt.Print(err)
 		return nil, err
 	}
 
-	var currencies = []Currency{}
 	err2 := row.All(&currencies)
-
 	if err2 != nil {
 		return nil, err2
 	}
 
 	_, err3 := json.Marshal(currencies)
 
-	fmt.Println("currencies ", len(currencies))
-
+	// fmt.Println("currencies ", len(currencies))
 	return currencies, err3
 }
