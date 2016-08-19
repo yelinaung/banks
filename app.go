@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 
-	str "strings"
 	r "github.com/dancannon/gorethink"
 	"github.com/jasonlvhit/gocron"
+	str "strings"
 	"github.com/gin-gonic/gin"
+	"time"
 	"net/http"
 	"os"
-	"time"
 )
 
 var dbName = "test"
@@ -126,7 +126,7 @@ func getAllLatestCurrencies() ([]Currency, error) {
 	// a bit hacky way to do it
 	query := r.Table(tableName).OrderBy("time").Limit(6)
 
-	// another butt ugly way is but super slow, obviosly
+	// another butt ugly way and super slow way is
 	//query := filterLatest("KBZ").
 	//	Union(filterLatest("CBB")).
 	//	Union(filterLatest("MAB")).
@@ -137,7 +137,7 @@ func getAllLatestCurrencies() ([]Currency, error) {
 	return resolveCursorToValue(query)
 }
 
-func filterLatest(name string) (r.Term) {
+func filterLatest(name string) r.Term {
 	return r.Table(tableName).OrderBy("time").
 		Filter(r.Row.Field("bank_name").Eq(str.ToUpper(name))).
 		Limit(1)

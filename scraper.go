@@ -146,7 +146,7 @@ func scrapKBZ() (string, []string, error) {
 		})
 	}
 
-	return "KBZ", flattern(tmp), err
+	return "KBZ", flatten(tmp), err
 }
 
 func scrapUAB() (string, []string, error) {
@@ -274,7 +274,7 @@ func panicIf(err error) {
 	}
 }
 
-func flattern(input [][]string) []string {
+func flatten(input [][]string) []string {
 	tmp := []string{}
 	for i := 0; i < len(input); i++ {
 		x := input[i]
