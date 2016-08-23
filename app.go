@@ -46,10 +46,10 @@ func init() {
 
 func main() {
 	fmt.Println("Starting..")
-	// Do jobs without params
 
-	gocron.Every(2).Seconds().Do(Run)
-	// gocron.Every(1).Day().At("00:30").Do(Run)
+	// Do jobs without params
+	// gocron.Every(2).Seconds().Do(Run)
+	gocron.Every(1).Day().At("05:30").Do(Run)
 
 	// Run the job
 	<-gocron.Start()
