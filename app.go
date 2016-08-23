@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	r "github.com/dancannon/gorethink"
-	"github.com/jasonlvhit/gocron"
-	str "strings"
 	"github.com/gin-gonic/gin"
-	"time"
+	"github.com/jasonlvhit/gocron"
 	"net/http"
 	"os"
+	str "strings"
+	"time"
 )
 
 var dbName = "test"
@@ -47,7 +47,8 @@ func init() {
 func main() {
 	fmt.Println("Starting..")
 	// Do jobs without params
-	gocron.Every(2).Minutes().Do(Run)
+
+	gocron.Every(2).Seconds().Do(Run)
 	// gocron.Every(1).Day().At("00:30").Do(Run)
 
 	// Run the job
