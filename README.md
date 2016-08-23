@@ -18,7 +18,7 @@ Supported banks
 $ go get github.com/yelinaung/banks
 $ cd $GOPATH/src/github.com/yelinaung/banks
 $ go get
-$ export PORT="8080" && go run banks.go
+$ export PORT="8080" && go build && ./banks
 ```
 
 You have to put the bank name as parameters in path
