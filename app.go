@@ -76,7 +76,6 @@ func main() {
 					"message": "Something went wrong!",
 				})
 		}
-
 	})
 
 	ginRoute.GET("/b/:bank", func(c *gin.Context) {
@@ -97,7 +96,7 @@ func main() {
 
 	})
 
-	ginRoute.GET("/latest1", func(c *gin.Context) {
+	ginRoute.GET("/latest", func(c *gin.Context) {
 		start := time.Now()
 		currencies, err := getAllLatestCurrencies()
 		var response Response
