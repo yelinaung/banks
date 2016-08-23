@@ -18,60 +18,28 @@ Supported banks
 $ go get github.com/yelinaung/banks
 $ cd $GOPATH/src/github.com/yelinaung/banks
 $ go get
-$ export PORT="8080" && go run banks.go
+$ export PORT="8080" && go build && ./banks
 ```
 
-You have to put the bank name as parameters in path
+## Usage 
 
-e.g For KBZ, put the bank name after the base url. Same for other banks.
+Getting latest rates by bank 
+e.g put the bank name after the base url. For example, 
 
-- KBZ - `localhost:8080/kbz`
-- CBB - `localhost:8080/cbb`
-- AYA - `localhost:8080/aya`
-- AGD - `localhost:8080/agd`
-- MAB - `localhost:8080/mab`
-- UAB - `localhost:8080/uab`
+```http
+GET 
 
-You can try deploying to [Heroku](www.heroku.com) too
+/b/[bank name]
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
-
-## Sample response
-
-```json
-{
-  "name":"KBZ",
-  "base":"MMK",
-  "time":"2014-12-21 14:51:06.97045683 +0630 MMT",
-  "rates":[
-    {
-      "USD":{
-        "buy":"1025",
-        "sell":"1034"
-      }
-    },
-    {
-      "EUR":{
-        "buy":"1249",
-        "sell":"1268"
-      }
-    },
-    {
-      "SGD":{
-        "buy":"774",
-        "sell":"786"
-      }
-    }
-  ]
-}
 ```
 
-## TODO
+Getting latest rates
 
-- ~~Deploy to Heroku~~
-- ~~To add AGD & AYA~~
-- To scrap periodically ?
-- To cache with the dates ?
+```http
+GET 
+
+/latest
+```
 
 ## Contributing
 
