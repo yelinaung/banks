@@ -33,18 +33,32 @@ var (
 	MAB = "MAB"
 	UAB = "UAB"
 	AGD = "AGD"
+
+	scraper Scraper
 )
+
+func NewScraper(dbName string, tableName string) Scraper {
+	scraper.dbName = dbName
+	scraper.tableName = tableName
+
+	return scraper
+}
+
+type Scraper struct {
+	dbName    string
+	tableName string
+}
 
 func generateID() (string, error) {
 	// Create a new unique ID.
-	r, err := r.UUID().Run(s)
+	rethink, err := r.UUID().Run(session)
 	if err != nil {
 		return "", fmt.Errorf("failed to obtain a new unique ID: %v", err)
 	}
 
 	// Get the value.
 	var id string
-	err = r.One(&id)
+	err = rethink.One(&id)
 	if err != nil {
 		return "", fmt.Errorf("failed to obtain a new unique ID: %v", err)
 	}
@@ -56,46 +70,46 @@ func generateID() (string, error) {
 	return id, nil
 }
 
-/***TestFunction does ...***/
-func Run() {
+// Run is the main function to kick of all the scraping work
+// it scraps, process the data and put into the db
+func RunScraper(scraper Scraper) {
 	fmt.Println("Running...")
-	// KBZ
 
 	// Need to remove file before extracting dat
 	os.Remove("kbz")
 	kbzData, err := process(scrapKBZ())
 	panicIf(err)
-	kbzResult, err := writeToDb(kbzData)
+	kbzResult, err := writeToDb(scraper, kbzData)
 	printLog(err, KBZ, kbzResult)
 
 	// UAB
 	uabData, err := process(scrapUAB())
 	panicIf(err)
-	uabResult, err := writeToDb(uabData)
+	uabResult, err := writeToDb(scraper, uabData)
 	printLog(err, UAB, uabResult)
 
 	// AGD Bank
 	agdData, err := process(scrapAGD())
 	panicIf(err)
-	agdResult, err := writeToDb(agdData)
+	agdResult, err := writeToDb(scraper, agdData)
 	printLog(err, AGD, agdResult)
 
 	// CBB
 	cbbData, err := process(scrapCBB())
 	panicIf(err)
-	cbbResult, err := writeToDb(cbbData)
+	cbbResult, err := writeToDb(scraper, cbbData)
 	printLog(err, CBB, cbbResult)
 
 	// AYA
 	ayaData, err := process(scrapAYA())
 	panicIf(err)
-	ayaResult, err := writeToDb(ayaData)
+	ayaResult, err := writeToDb(scraper, ayaData)
 	printLog(err, AYA, ayaResult)
 
 	// MAB
 	mabData, err := process(scrapMAB())
 	panicIf(err)
-	mabResult, err := writeToDb(mabData)
+	mabResult, err := writeToDb(scraper, mabData)
 	printLog(err, MAB, mabResult)
 }
 
@@ -107,8 +121,8 @@ func printLog(err error, bankName string, response r.WriteResponse) {
 	fmt.Printf("%d inserted for %s bank \n", response.Inserted, bankName)
 }
 
-func writeToDb(data Currency) (r.WriteResponse, error) {
-	return r.Table(tableName).Insert(data).RunWrite(s)
+func writeToDb(scraper Scraper, data Currency) (r.WriteResponse, error) {
+	return r.Table(scraper.tableName).Insert(data).RunWrite(session)
 }
 
 func scrapKBZ() (string, []string, error) {
@@ -216,11 +230,11 @@ func scrapAYA() (string, []string, error) {
 
 	doc, err := goquery.NewDocument(ayaURL)
 
-	r, _ := regexp.Compile(`\D`)
+	regex, _ := regexp.Compile(`\D`)
 	doc.Find("#tablepress-2 tr").Slice(1, 4).Find("td").Each(func(i int, s *goquery.Selection) {
 		sText := s.Text()
 		if str.Contains(sText, "/") {
-			tmp = append(tmp, str.TrimSpace(r.ReplaceAllLiteralString(sText, "")))
+			tmp = append(tmp, str.TrimSpace(regex.ReplaceAllLiteralString(sText, "")))
 		}
 		tmp = append(tmp, str.TrimSpace(sText))
 	})
@@ -294,13 +308,13 @@ type Response struct {
 	Data Data `json:"data"`
 }
 
-// Type which serves as "data" for the Response
+// Data is the type which serves as "data" for the Response
 // Doesn't include in the DB
 type Data struct {
 	Currencies []Currency `json:"currencies"`
 }
 
-// Type with all the necessary data
+// Currency is the type with all the necessary data
 // Data is stored in the DB
 type Currency struct {
 	ID    string               `json:"id" gorethink:"id"`
@@ -321,13 +335,4 @@ type agd struct {
 type buySell struct {
 	Buy  string `json:"buy" gorethink:"buy"`
 	Sell string `json:"sell" gorethink:"sell"`
-}
-
-func printStr(v string) {
-	fmt.Println(v)
-}
-
-func printObj(v interface{}) {
-	vBytes, _ := json.Marshal(v)
-	fmt.Println(string(vBytes))
 }

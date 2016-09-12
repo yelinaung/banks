@@ -1,1 +1,2 @@
-web: banks
+api: bin/api
+scraper: bin/scraper
