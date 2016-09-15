@@ -1,4 +1,4 @@
-package main
+package scraper
 
 import (
 	"crypto/tls"
@@ -35,18 +35,41 @@ var (
 	AGD = "AGD"
 
 	scraper Scraper
+	session *r.Session
 )
 
 func NewScraper(dbName string, tableName string) Scraper {
 	scraper.dbName = dbName
 	scraper.tableName = tableName
-
+	scraper.Init()
 	return scraper
 }
 
 type Scraper struct {
 	dbName    string
 	tableName string
+}
+
+func (scraper Scraper) Init() {
+	var err error
+
+	session, err = r.Connect(r.ConnectOpts{
+		Address:  "localhost:28015",
+		Database: scraper.dbName,
+		MaxOpen:  10,
+	})
+
+	if err != nil {
+		fmt.Errorf("failed to connect to database: %v", err)
+	}
+
+	_, err1 := r.DB(scraper.dbName).TableCreate(scraper.tableName).RunWrite(session)
+
+	if err1 == nil {
+		fmt.Printf("Error creating table: %s", err1)
+	} else {
+		r.DB(scraper.dbName).TableCreate(scraper.tableName).RunWrite(session)
+	}
 }
 
 func generateID() (string, error) {

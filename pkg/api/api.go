@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"encoding/json"
@@ -10,12 +10,15 @@ import (
 
 	r "github.com/dancannon/gorethink"
 	"github.com/gin-gonic/gin"
+	"github.com/yelinaung/banks/pkg/scraper"
 )
 
 var api API
+var session *r.Session
 
-func NewAPIServer(port string, tableName string, session *r.Session) API {
+func NewAPIServer(port string, dbName string, tableName string, session *r.Session) API {
 	api.port = port
+	api.dbName = dbName
 	api.tableName = tableName
 	api.session = session
 	return api
@@ -23,8 +26,31 @@ func NewAPIServer(port string, tableName string, session *r.Session) API {
 
 type API struct {
 	port      string
+	dbName    string
 	tableName string
 	session   *r.Session
+}
+
+func (api API) Init() {
+	var err error
+
+	session, err = r.Connect(r.ConnectOpts{
+		Address:  "localhost:28015",
+		Database: api.dbName,
+		MaxOpen:  10,
+	})
+
+	if err != nil {
+		fmt.Errorf("failed to connect to database: %v", err)
+	}
+
+	_, err1 := r.DB(api.dbName).TableCreate(api.tableName).RunWrite(session)
+
+	if err1 == nil {
+		fmt.Printf("Error creating table: %s", err1)
+	} else {
+		r.DB(api.dbName).TableCreate(api.tableName).RunWrite(session)
+	}
 }
 
 func StartAPIServer(api API) {
@@ -38,8 +64,8 @@ func StartAPIServer(api API) {
 
 	ginRoute.GET("/all", func(c *gin.Context) {
 		currencies, err := getAll(api.tableName)
-		var response Response
-		var data Data
+		var response scraper.Response
+		var data scraper.Data
 		data.Currencies = currencies
 		response.Data = data
 		if err == nil {
@@ -55,8 +81,8 @@ func StartAPIServer(api API) {
 	ginRoute.GET("/b/:bank", func(c *gin.Context) {
 		bankName := c.Params.ByName("bank")
 		currencies, err := getAllCurrenciesByBankName(api.tableName, bankName)
-		var response Response
-		var data Data
+		var response scraper.Response
+		var data scraper.Data
 		data.Currencies = currencies
 		response.Data = data
 		if err == nil {
@@ -72,8 +98,8 @@ func StartAPIServer(api API) {
 	ginRoute.GET("/latest", func(c *gin.Context) {
 		start := time.Now()
 		currencies, err := getAllLatestCurrencies(api.tableName)
-		var response Response
-		var data Data
+		var response scraper.Response
+		var data scraper.Data
 		data.Currencies = currencies
 		response.Data = data
 		if err == nil {
@@ -91,12 +117,12 @@ func StartAPIServer(api API) {
 	ginRoute.Run(":" + api.port)
 }
 
-func getAll(tableName string) ([]Currency, error) {
+func getAll(tableName string) ([]scraper.Currency, error) {
 	query := r.Table(tableName)
 	return resolveCursorToValue(query)
 }
 
-func getAllLatestCurrencies(tableName string) ([]Currency, error) {
+func getAllLatestCurrencies(tableName string) ([]scraper.Currency, error) {
 	// a bit hacky way to do it
 	query := r.Table(tableName).OrderBy("time").Limit(6)
 
@@ -117,13 +143,13 @@ func filterLatest(tableName string, name string) r.Term {
 		Limit(1)
 }
 
-func getAllCurrenciesByBankName(tableName string, name string) ([]Currency, error) {
+func getAllCurrenciesByBankName(tableName string, name string) ([]scraper.Currency, error) {
 	query := r.Table(tableName).Filter(r.Row.Field("bank_name").Eq(str.ToUpper(name)))
 	return resolveCursorToValue(query)
 }
 
-func resolveCursorToValue(t r.Term) ([]Currency, error) {
-	var currencies = []Currency{}
+func resolveCursorToValue(t r.Term) ([]scraper.Currency, error) {
+	var currencies = []scraper.Currency{}
 
 	row, err := t.Run(api.session)
 	if err != nil {
