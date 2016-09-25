@@ -12,22 +12,22 @@ var dbName = "test"
 var tableName = "currency"
 
 func init() {
-	var err error
+	var connectError error
 
-	session, err = r.Connect(r.ConnectOpts{
+	session, connectError = r.Connect(r.ConnectOpts{
 		Address:  "localhost:28015",
 		Database: dbName,
 		MaxOpen:  10,
 	})
 
-	if err != nil {
-		fmt.Errorf("failed to connect to database: %v", err)
+	if connectError != nil {
+		fmt.Errorf("failed to connect to database: %v", connectError)
 	}
 
-	_, err1 := r.DB(dbName).TableCreate(tableName).RunWrite(session)
+	_, tableCreateError := r.DB(dbName).TableCreate(tableName).RunWrite(session)
 
-	if err1 == nil {
-		fmt.Printf("Error creating table: %s", err1)
+	if tableCreateError == nil {
+		fmt.Errorf("Error creating table : %v", tableCreateError)
 	} else {
 		r.DB(dbName).TableCreate(tableName).RunWrite(session)
 	}

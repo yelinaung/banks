@@ -101,7 +101,7 @@ func getAll(tableName string) ([]scraper.Currency, error) {
 
 func getAllLatestCurrencies(tableName string) ([]scraper.Currency, error) {
 	// a bit hacky way to do it
-	query := r.Table(tableName).OrderBy("time").Limit(6)
+	query := r.Table(tableName).OrderBy(r.Desc("time")).Limit(6)
 
 	// another butt ugly way and super slow way is
 	//query := filterLatest("KBZ").

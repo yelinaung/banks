@@ -63,13 +63,13 @@ func (scraper Scraper) Init() {
 		fmt.Errorf("failed to connect to database: %v", err)
 	}
 
-	_, err1 := r.DB(scraper.dbName).TableCreate(scraper.tableName).RunWrite(session)
-
-	if err1 == nil {
-		fmt.Printf("Error creating table: %s", err1)
-	} else {
-		r.DB(scraper.dbName).TableCreate(scraper.tableName).RunWrite(session)
-	}
+	//_, err1 := r.DB(scraper.dbName).TableCreate(scraper.tableName).RunWrite(session)
+	//
+	//if err1 == nil {
+	//	fmt.Printf("Error creating table: %s", err1)
+	//} else {
+	//	r.DB(scraper.dbName).TableCreate(scraper.tableName).RunWrite(session)
+	//}
 }
 
 func generateID() (string, error) {
