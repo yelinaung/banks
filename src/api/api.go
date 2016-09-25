@@ -1,12 +1,10 @@
 package main
 
 import (
-	"os"
 	"fmt"
+	"github.com/yelinaung/banks/pkg/api"
 	r "github.com/dancannon/gorethink"
-	"github.com/jasonlvhit/gocron"
-	"../banks/pkg/scraper"
-	"../banks/pkg/api"
+	"os"
 )
 
 var session *r.Session
@@ -36,15 +34,6 @@ func init() {
 }
 
 func main() {
-	var s = scraper.NewScraper(dbName, tableName)
-
-	// Do jobs without params
-	gocron.Every(10).Seconds().Do(scraper.RunScraper, s)
-	// gocron.Every(1).Day().At("05:30").Do(RunScraper, scraper)
-
-	// Run the job
-	<-gocron.Start()
-
 	server := api.NewAPIServer(os.Getenv("PORT"), dbName, tableName, session)
 	api.StartAPIServer(server)
 }

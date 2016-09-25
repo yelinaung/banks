@@ -14,7 +14,6 @@ import (
 )
 
 var api API
-var session *r.Session
 
 func NewAPIServer(port string, dbName string, tableName string, session *r.Session) API {
 	api.port = port
@@ -29,28 +28,6 @@ type API struct {
 	dbName    string
 	tableName string
 	session   *r.Session
-}
-
-func (api API) Init() {
-	var err error
-
-	session, err = r.Connect(r.ConnectOpts{
-		Address:  "localhost:28015",
-		Database: api.dbName,
-		MaxOpen:  10,
-	})
-
-	if err != nil {
-		fmt.Errorf("failed to connect to database: %v", err)
-	}
-
-	_, err1 := r.DB(api.dbName).TableCreate(api.tableName).RunWrite(session)
-
-	if err1 == nil {
-		fmt.Printf("Error creating table: %s", err1)
-	} else {
-		r.DB(api.dbName).TableCreate(api.tableName).RunWrite(session)
-	}
 }
 
 func StartAPIServer(api API) {
