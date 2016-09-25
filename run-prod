@@ -5,5 +5,5 @@ go build src/scraper/scraper.go && mv scraper bin/
 export PORT=8000 \
 && export GIN_MODE=release \
 && export BANKS_MODE=release \
-&& && forego start
+&& forego start
 
