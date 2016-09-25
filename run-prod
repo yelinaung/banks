@@ -2,5 +2,8 @@
 
 go build src/api/api.go && mv api bin/
 go build src/scraper/scraper.go && mv scraper bin/
-export PORT=8000 && export GIN_MODE=release && forego start
+export PORT=8000 \
+&& export GIN_MODE=release \
+&& export BANKS_MODE=release \
+&& && forego start
 
