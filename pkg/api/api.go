@@ -14,6 +14,7 @@ import (
 )
 
 var api API
+var apiVersion = "v1"
 
 func NewAPIServer(port string, dbName string, tableName string, session *r.Session) API {
 	api.port = port
@@ -33,13 +34,15 @@ type API struct {
 func StartAPIServer(api API) {
 	ginRoute := gin.New()
 
+	baseUrl := fmt.Sprintf("/api/%s", apiVersion)
+
 	// Base
-	ginRoute.GET("/", func(c *gin.Context) {
+	ginRoute.GET(baseUrl + "/", func(c *gin.Context) {
 		c.String(http.StatusOK,
 			"Nothing to see here.Check https://github.com/yelinaung/banks")
 	})
 
-	ginRoute.GET("/all", func(c *gin.Context) {
+	ginRoute.GET(baseUrl + "/all", func(c *gin.Context) {
 		currencies, err := getAll(api.tableName)
 		var response scraper.Response
 		var data scraper.Data
@@ -55,7 +58,7 @@ func StartAPIServer(api API) {
 		}
 	})
 
-	ginRoute.GET("/b/:bank", func(c *gin.Context) {
+	ginRoute.GET(baseUrl + "/b/:bank", func(c *gin.Context) {
 		bankName := c.Params.ByName("bank")
 		currencies, err := getAllCurrenciesByBankName(api.tableName, bankName)
 		var response scraper.Response
@@ -72,7 +75,7 @@ func StartAPIServer(api API) {
 		}
 	})
 
-	ginRoute.GET("/latest", func(c *gin.Context) {
+	ginRoute.GET(baseUrl + "/latest", func(c *gin.Context) {
 		start := time.Now()
 		currencies, err := getAllLatestCurrencies(api.tableName)
 		var response scraper.Response
