@@ -14,32 +14,44 @@ Supported banks
 
 ## How to run
 
+You will need [forego](https://github.com/ddollar/forego) to run two processes.
+And also install [rethinkdb](https://rethinkdb.com/docs/install/) for storing the json.
+
 ```bash
-$ go get github.com/yelinaung/banks
+$ go get -u github.com/ddollar/forego
+$ go get -u github.com/yelinaung/banks
 $ cd $GOPATH/src/github.com/yelinaung/banks
 $ go get
-$ export PORT="8080" && go build && ./banks
+$ rethinkdb
+$ ./run # or ./run-prod if you want to run in production
 ```
 
 ## Usage 
 
-Getting latest rates by bank 
+#### Getting latest rates by bank 
+
 e.g put the bank name after the base url. For example, 
 
 ```http
 GET 
 
-/b/[bank name]
+/api/v1/b/[bank name]
 
 ```
 
-Getting latest rates
+Example available at : [http://c.yelinaung.com/api/v1/b/kbz](http://c.yelinaung.com/api/v1/b/kbz)
+
+#### Getting latest rates
+
+During debug mode, scraper runs **every 20 seconds** and during prod mode, the scraper runs **every 2 hours**.
 
 ```http
 GET 
 
-/latest
+/api/v1/latest
 ```
+
+Example available at : [http://c.yelinaung.com/api/v1/latest](http://c.yelinaung.com/api/v1/latest)
 
 ## Contributing
 
@@ -49,6 +61,7 @@ GET
   4. Push to the branch (`git push origin my-new-feature`)
 
 
-## Lincese
+## License
+
 MIT
 
