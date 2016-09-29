@@ -16,6 +16,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 
 	r "github.com/dancannon/gorethink"
+	"github.com/Sirupsen/logrus"
 )
 
 // Bank Urls
@@ -37,6 +38,8 @@ var (
 	scraper Scraper
 	session *r.Session
 )
+
+var logger = logrus.New()
 
 func NewScraper(dbName string, tableName string) Scraper {
 	scraper.dbName = dbName
@@ -60,23 +63,27 @@ func (scraper Scraper) Init() {
 	})
 
 	if err != nil {
-		fmt.Errorf("failed to connect to database: %v", err)
+		logger.WithFields(logrus.Fields{
+			"app": "scraper",
+			"omg":    true,
+			"err":    err,
+		}).Fatal("failed to connect to database: %v", err)
 	}
 
-	//_, err1 := r.DB(scraper.dbName).TableCreate(scraper.tableName).RunWrite(session)
-	//
-	//if err1 == nil {
-	//	fmt.Printf("Error creating table: %s", err1)
-	//} else {
-	//	r.DB(scraper.dbName).TableCreate(scraper.tableName).RunWrite(session)
-	//}
+	logger.Formatter = new(logrus.JSONFormatter)
+	logger.Level = logrus.DebugLevel
 }
 
 func generateID() (string, error) {
 	// Create a new unique ID.
 	rethink, err := r.UUID().Run(session)
 	if err != nil {
-		return "", fmt.Errorf("failed to obtain a new unique ID: %v", err)
+		logger.WithFields(logrus.Fields{
+			"app": "scraper",
+			"omg":    true,
+			"err":    err,
+		}).Fatal("failed to obtain a new unique ID: %v", err)
+		return "", nil
 	}
 
 	// Get the value.
@@ -96,7 +103,9 @@ func generateID() (string, error) {
 // Run is the main function to kick of all the scraping work
 // it scraps, process the data and put into the db
 func RunScraper(scraper Scraper) {
-	fmt.Println("Running...")
+	logger.WithFields(logrus.Fields{
+		"app": "scraper",
+	}).Info("Running...")
 
 	// Need to remove file before extracting dat
 	os.Remove("kbz")
@@ -141,7 +150,9 @@ func printLog(err error, bankName string, response r.WriteResponse) {
 		fmt.Println(err)
 	}
 
-	fmt.Printf("%d inserted for %s bank \n", response.Inserted, bankName)
+	logger.WithFields(logrus.Fields{
+		"app": "scraper",
+	}).Info(fmt.Sprintf("%d inserted for %s bank", response.Inserted, bankName))
 }
 
 func writeToDb(scraper Scraper, data Currency) (r.WriteResponse, error) {
