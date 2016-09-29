@@ -16,7 +16,7 @@ func main() {
 	if os.Getenv("BANKS_MODE") == "release" {
 		gocron.Every(2).Hours().Do(scraper.RunScraper, s)
 	} else {
-		gocron.Every(20).Seconds().Do(scraper.RunScraper, s)
+		gocron.Every(30).Seconds().Do(scraper.RunScraper, s)
 	}
 
 	// Run the job
