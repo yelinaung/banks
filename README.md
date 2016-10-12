@@ -19,9 +19,9 @@ And also install [rethinkdb](https://rethinkdb.com/docs/install/) for storing th
 
 ```bash
 $ go get -u github.com/ddollar/forego
-$ go get -u github.com/yelinaung/banks
+$ go get -u github.com/yelinaung/banks/...
 $ cd $GOPATH/src/github.com/yelinaung/banks
-$ go get
+$ go get ./...
 $ rethinkdb
 $ ./run # or ./run-prod if you want to run in production
 ```
