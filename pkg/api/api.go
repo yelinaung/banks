@@ -10,8 +10,8 @@ import (
 
 	r "github.com/dancannon/gorethink"
 	"github.com/gin-gonic/gin"
+	"github.com/renannprado/cors"
 	"github.com/yelinaung/banks/pkg/scraper"
-        "github.com/renannprado/cors"
 )
 
 var api API
@@ -35,19 +35,20 @@ type API struct {
 func StartAPIServer(api API) {
 	ginRoute := gin.New()
 
-        ginRoute.Use(cors.New(cors.Config{
-          AllowAllOrigins:  true,
-          AllowMethods:     []string{"PUT", "OPTIONS", "GET", "POST", "PATCH"},
-          AllowHeaders:     []string{"Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers"},
-          ExposeHeaders:    []string{"Content-Length"},
-          AllowCredentials: true,
-          MaxAge: 12 * time.Hour,
-      }))
+	ginRoute.Use(cors.New(cors.Config{
+		AllowAllOrigins:  true,
+		AllowMethods:     []string{"PUT", "OPTIONS", "GET", "POST", "PATCH"},
+		AllowHeaders:     []string{"Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	baseUrl := fmt.Sprintf("/api/%s", apiVersion)
 
 	// Base
-	ginRoute.GET(baseUrl+"/", func(c *gin.Context) { c.String(http.StatusOK,
+	ginRoute.GET(baseUrl+"/", func(c *gin.Context) {
+		c.String(http.StatusOK,
 			"Nothing to see here.Check https://github.com/yelinaung/banks")
 	})
 
