@@ -303,8 +303,8 @@ func process(bankName string, tmp []string, err error) (Currency, error) {
 		sell := []string{tmp[2], tmp[5], tmp[8]}
 
 		for x := range currencies {
-			bank.Rates = append(bank.Rates, map[string]buySell{
-				currencies[x]: {buy[x], sell[x]}})
+			bank.Rates = append(bank.Rates, buySell{
+	                        currencies[x], buy[x], sell[x]})
 		}
 	}
 
@@ -334,8 +334,7 @@ func flatten(input [][]string) []string {
 	}
 
 	return tmp
-}
-
+} 
 // Response type for the api
 // Doesn't include in the DB
 type Response struct {
@@ -355,7 +354,7 @@ type Currency struct {
 	Name  string               `json:"bank_name" gorethink:"bank_name"`
 	Base  string               `json:"base" gorethink:"base"`
 	Time  string               `json:"time" gorethink:"time"`
-	Rates []map[string]buySell `json:"rates" gorethink:"rates"`
+	Rates []buySell            `json:"rates" gorethink:"rates"`
 }
 
 type agd struct {
@@ -367,6 +366,8 @@ type agd struct {
 }
 
 type buySell struct {
+        CurrencyShortcode string `json:"currency_shortcode" gorethink:"currency_shortcode"`
 	Buy  string `json:"buy" gorethink:"buy"`
 	Sell string `json:"sell" gorethink:"sell"`
 }
+
