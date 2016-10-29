@@ -15,8 +15,8 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	r "github.com/dancannon/gorethink"
 	"github.com/Sirupsen/logrus"
+	r "github.com/dancannon/gorethink"
 )
 
 // Bank Urls
@@ -65,8 +65,8 @@ func (scraper Scraper) Init() {
 	if err != nil {
 		logger.WithFields(logrus.Fields{
 			"app": "scraper",
-			"omg":    true,
-			"err":    err,
+			"omg": true,
+			"err": err,
 		}).Fatal("failed to connect to database: %v", err)
 	}
 
@@ -80,8 +80,8 @@ func generateID() (string, error) {
 	if err != nil {
 		logger.WithFields(logrus.Fields{
 			"app": "scraper",
-			"omg":    true,
-			"err":    err,
+			"omg": true,
+			"err": err,
 		}).Fatal("failed to obtain a new unique ID: %v", err)
 		return "", nil
 	}
@@ -303,8 +303,8 @@ func process(bankName string, tmp []string, err error) (Currency, error) {
 		sell := []string{tmp[2], tmp[5], tmp[8]}
 
 		for x := range currencies {
-			bank.Rates = append(bank.Rates, map[string]buySell{
-				currencies[x]: {buy[x], sell[x]}})
+			bank.Rates = append(bank.Rates, buySell{
+				currencies[x], buy[x], sell[x]})
 		}
 	}
 
@@ -351,11 +351,11 @@ type Data struct {
 // Currency is the type with all the necessary data
 // Data is stored in the DB
 type Currency struct {
-	ID    string               `json:"id" gorethink:"id"`
-	Name  string               `json:"bank_name" gorethink:"bank_name"`
-	Base  string               `json:"base" gorethink:"base"`
-	Time  string               `json:"time" gorethink:"time"`
-	Rates []map[string]buySell `json:"rates" gorethink:"rates"`
+	ID    string    `json:"id" gorethink:"id"`
+	Name  string    `json:"bank_name" gorethink:"bank_name"`
+	Base  string    `json:"base" gorethink:"base"`
+	Time  string    `json:"time" gorethink:"time"`
+	Rates []buySell `json:"rates" gorethink:"rates"`
 }
 
 type agd struct {
@@ -367,6 +367,7 @@ type agd struct {
 }
 
 type buySell struct {
-	Buy  string `json:"buy" gorethink:"buy"`
-	Sell string `json:"sell" gorethink:"sell"`
+	CurrencyShortcode string `json:"currency_shortcode" gorethink:"currency_shortcode"`
+	Buy               string `json:"buy" gorethink:"buy"`
+	Sell              string `json:"sell" gorethink:"sell"`
 }
